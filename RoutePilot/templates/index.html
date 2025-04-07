@@ -1,33 +1,21 @@
 <!DOCTYPE html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>RoutePilot</title>
-    <link
-      href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css"
-      rel="stylesheet"
-      integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH"
-      crossorigin="anonymous"
-    />
-    <link
-      rel="stylesheet"
-      href="{{ url_for('static', filename='style.css') }}"
-    />
-  </head>
-  <body>
-    <h1>For test</h1>
-    <p>
-      for Testing Lorem ipsum dolor sit amet consectetur adipisicing elit. Odio
-      ab, iusto tempora dicta assumenda ratione cupiditate velit similique,
-      tempore voluptatum adipisci aut sed esse error id sequi aliquid sunt
-      pariatur! Lorem ipsum, dolor sit amet consectetur adipisicing elit. Modi
-      delectus nisi perferendis praesentium dolorum, mollitia cum quis
-      exercitationem dolores. Quis iste laboriosam deserunt rem molestiae fugit
-      facere optio, dolores cumque. Lorem ipsum dolor sit amet consectetur
-      adipisicing elit. Perferendis optio, ullam dolorem asperiores sapiente
-      officiis impedit culpa ipsa voluptatum doloremque quibusdam inventore
-      corporis dolor a. Earum laboriosam voluptatem obcaecati quis.
-    </p>
-  </body>
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>RoutePilot</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet"
+    integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous" />
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}" />
+  <script type="text/javascript" src="//dapi.kakao.com/v2/maps/sdk.js?appkey=YOUR_KAKAO_JAVASCRIPT_KEY"></script>
+  <script src="{{ url_for('static', filename='main.js') }}"></script>
+</head>
+
+<body>
+  <h2>📍 내 위치의 실시간 날씨</h2>
+  <div id="weather_info" style="margin: 10px 0;"></div>
+  <div id="map" style="width:100%; height:500px;"></div>
+</body>
+
 </html>
