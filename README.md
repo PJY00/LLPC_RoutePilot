@@ -7,11 +7,11 @@
 
 ### 커밋 규칙
 
-모든 커밋 메시지는 영어로 작성한다.
-동사형 구분 단어와 간단한 설명으로 이루어지게 하며 둘은 빈 칸으로 구분한다(" ")
-설명은 40자 이내로 제한한다.
-동사형 단어는 대문자로 작성하고 설명문의 첫 글자는 대문자, 나머지는 소문자로 작성한다.
-설명부분에는 문제점이나 바뀐요소를 이해하기 쉽고 간단한 형식으로 작성한다.
+모든 커밋 메시지는 영어로 작성한다.  
+동사형 구분 단어와 간단한 설명으로 이루어지게 하며 둘은 빈 칸으로 구분한다(" ")  
+설명은 40자 이내로 제한한다.  
+동사형 단어는 대문자로 작성하고 설명문의 첫 글자는 대문자, 나머지는 소문자로 작성한다.  
+설명부분에는 문제점이나 바뀐요소를 이해하기 쉽고 간단한 형식으로 작성한다.  
 
 Pull Request와 Issue의 내용은 한국어와 영어 두 내용을 모두 포함해야 한다.
 
@@ -25,10 +25,10 @@ CHORE-설정 파일 수정, 빌드 관련 작업 등 코드 수정이 아닌 유
 ---
 #### 예시
 
-ADD Image of the logo
-FEAT Function of navigate in the road
-FIX Fix the bug in making map
-REF Delete the useless method
-CHORE Update the gitignore
+ADD Image of the logo  
+FEAT Function of navigate in the road  
+FIX Fix the bug in making map  
+REF Delete the useless method  
+CHORE Update the gitignore  
 
 ---
