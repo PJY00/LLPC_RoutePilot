@@ -1,7 +1,21 @@
 let map;
 let marker;
 
-window.onload = function () {
+// ✅ kakao 객체가 완전히 로드될 때까지 기다리기
+function waitForKakao(callback) {
+  if (typeof kakao !== "undefined" && kakao.maps) {
+    callback();
+  } else {
+    setTimeout(() => waitForKakao(callback), 100);
+  }
+}
+
+waitForKakao(() => {
+  console.log("✅ kakao 객체 로딩 완료");
+  initMapAndWeather();
+});
+
+function initMapAndWeather() {
   if (navigator.geolocation) {
     navigator.geolocation.getCurrentPosition((pos) => {
       const lat = pos.coords.latitude;
@@ -24,7 +38,7 @@ window.onload = function () {
   } else {
     alert("위치 접근 불가");
   }
-};
+}
 
 function updateWeather(lat, lon) {
   fetch("/weather", {
@@ -45,7 +59,6 @@ function updateWeather(lat, lon) {
         map: map
       });
 
-      // 말풍선처럼 보이게
       const infowindow = new kakao.maps.InfoWindow({
         position: position,
         content: `<div style="padding:5px;">${data.temp}℃</div>`

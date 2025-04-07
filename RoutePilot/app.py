@@ -52,40 +52,63 @@ def index():
 
 @app.route("/weather", methods=["POST"])
 def weather():
-    data = request.json
-    lat, lon = data["lat"], data["lon"]
-    x, y = latlon_to_grid(lat, lon)
+    try:
+        data = request.get_json()
+        print(">>> 받은 좌표:", data)
 
-    base_time = datetime.utcnow() + timedelta(hours=9)
-    if base_time.minute < 40:
-        base_time -= timedelta(hours=1)
-    base_date = base_time.strftime("%Y%m%d")
-    base_time_str = base_time.strftime("%H") + "30"
+        if not data or "lat" not in data or "lon" not in data:
+            return jsonify({"error": "위치 정보가 없습니다."}), 400
 
-    url = "http://apis.data.go.kr/1360000/VilageFcstInfoService_2.0/getUltraSrtNcst"
-    params = {
-        "serviceKey": KMA_KEY,
-        "numOfRows": "10",
-        "pageNo": "1",
-        "dataType": "JSON",
-        "base_date": base_date,
-        "base_time": base_time_str,
-        "nx": x,
-        "ny": y,
-    }
+        lat, lon = data["lat"], data["lon"]
+        x, y = latlon_to_grid(lat, lon)
 
-    res = requests.get(url, params=params)
-    items = res.json().get("response", {}).get("body", {}).get("items", {}).get("item", [])
+        base_time = datetime.utcnow() + timedelta(hours=9)
+        if base_time.minute < 40:
+            base_time -= timedelta(hours=1)
+        base_date = base_time.strftime("%Y%m%d")
+        base_time_str = base_time.strftime("%H") + "30"
 
-    result = {}
-    for item in items:
-        if item["category"] == "T1H":
-            result["temp"] = item["obsrValue"]
-        elif item["category"] == "REH":
-            result["humidity"] = item["obsrValue"]
-        elif item["category"] == "PTY":
-            result["rain_type"] = item["obsrValue"]
-    return jsonify(result)
+        url = "http://apis.data.go.kr/1360000/VilageFcstInfoService_2.0/getUltraSrtNcst"
+        params = {
+            "serviceKey": KMA_KEY,
+            "numOfRows": "10",
+            "pageNo": "1",
+            "dataType": "JSON",
+            "base_date": base_date,
+            "base_time": base_time_str,
+            "nx": x,
+            "ny": y,
+        }
+
+        res = requests.get(url, params=params)
+        print(">>> KMA 응답 상태 코드:", res.status_code)
+        if res.status_code != 200:
+            print(">>> KMA API 요청 실패:", res.text)
+            return jsonify({"error": "기상청 API 호출 실패"}), 500
+
+        json_data = res.json()
+        items = json_data.get("response", {}).get("body", {}).get("items", {}).get("item", [])
+        print(">>> 받은 날씨 데이터:", items)
+
+        result = {}
+        for item in items:
+            if item["category"] == "T1H":
+                result["temp"] = item["obsrValue"]
+            elif item["category"] == "REH":
+                result["humidity"] = item["obsrValue"]
+            elif item["category"] == "PTY":
+                code = str(item["obsrValue"])
+                rain_types = {
+                    "0": "없음", "1": "비", "2": "비/눈", "3": "눈", "4": "소나기"
+                }
+                result["rain_type"] = rain_types.get(code, "알 수 없음")
+
+        print(">>> 최종 날씨 응답 데이터:", result)
+        return jsonify(result)
+
+    except Exception as e:
+        print(">>> 서버 에러 발생:", e)
+        return jsonify({"error": "서버 에러", "message": str(e)}), 500
 
 if __name__ == "__main__":
     app.run(debug=True)
