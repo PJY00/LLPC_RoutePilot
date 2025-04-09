@@ -3,11 +3,13 @@ import os, requests
 from dotenv import load_dotenv
 from datetime import datetime, timedelta
 import math
+from urllib.parse import quote_plus  # ✅ 추가
 
 app = Flask(__name__)
 load_dotenv()
 
 KMA_KEY = os.getenv("KMA_API_KEY")
+print(">>> KMA 키:", KMA_KEY)
 KAKAO_KEY = os.getenv("KAKAO_JS_KEY")
 
 # 위도, 경도를 격자(x, y)로 변환
@@ -50,7 +52,7 @@ def latlon_to_grid(lat, lon):
 def index():
     return render_template("index.html", kakao_key=KAKAO_KEY)
 
-@app.route("/weather", methods=["POST"])
+@app.route("/weather", methods=["GET", "POST"])
 def weather():
     try:
         data = request.get_json()
@@ -68,6 +70,7 @@ def weather():
         base_date = base_time.strftime("%Y%m%d")
         base_time_str = base_time.strftime("%H") + "30"
 
+        encoded_key = quote_plus(KMA_KEY)  # ✅ 인코딩된 키 사용
         url = "http://apis.data.go.kr/1360000/VilageFcstInfoService_2.0/getUltraSrtNcst"
         params = {
             "serviceKey": KMA_KEY,
@@ -81,7 +84,10 @@ def weather():
         }
 
         res = requests.get(url, params=params)
+        print(">>> KMA API 호출 URL:", res.url)
+        print(">>> KMA 응답 텍스트:", res.text)
         print(">>> KMA 응답 상태 코드:", res.status_code)
+
         if res.status_code != 200:
             print(">>> KMA API 요청 실패:", res.text)
             return jsonify({"error": "기상청 API 호출 실패"}), 500
