@@ -3,7 +3,6 @@ import os, requests
 from dotenv import load_dotenv
 from datetime import datetime, timedelta
 import math
-from urllib.parse import quote_plus  # ✅ 추가
 
 app = Flask(__name__)
 load_dotenv()
@@ -48,6 +47,21 @@ def latlon_to_grid(lat, lon):
     y = int(ro - ra * math.cos(theta) + YO + 0.5)
     return x, y
 
+# 기상청 API에 맞는 가장 최신 base_time 구하기
+def get_latest_base_time():
+    kst_now = datetime.utcnow() + timedelta(hours=9)
+    forecast_hours = [2, 5, 8, 11, 14, 17, 20, 23]
+
+    for h in reversed(forecast_hours):
+        if kst_now.hour > h or (kst_now.hour == h and kst_now.minute >= 45):
+            base_date = kst_now.strftime("%Y%m%d")
+            base_time = f"{h:02}30"
+            return base_date, base_time
+
+    # 이른 새벽이면 전날 23:30 예보
+    yesterday = kst_now - timedelta(days=1)
+    return yesterday.strftime("%Y%m%d"), "2330"
+
 @app.route("/")
 def index():
     return render_template("index.html", kakao_key=KAKAO_KEY)
@@ -64,17 +78,14 @@ def weather():
         lat, lon = data["lat"], data["lon"]
         x, y = latlon_to_grid(lat, lon)
 
-        base_time = datetime.utcnow() + timedelta(hours=9)
-        if base_time.minute < 40:
-            base_time -= timedelta(hours=1)
-        base_date = base_time.strftime("%Y%m%d")
-        base_time_str = base_time.strftime("%H") + "30"
+        # 예보 시간 계산
+        base_date, base_time_str = get_latest_base_time()
+        print(f">>> 요청 base_date: {base_date}, base_time: {base_time_str}")
 
-        encoded_key = quote_plus(KMA_KEY)  # ✅ 인코딩된 키 사용
-        url = "http://apis.data.go.kr/1360000/VilageFcstInfoService_2.0/getUltraSrtNcst"
+        url = "http://apis.data.go.kr/1360000/VilageFcstInfoService_2.0/getVilageFcst"
         params = {
             "serviceKey": KMA_KEY,
-            "numOfRows": "10",
+            "numOfRows": "10000",
             "pageNo": "1",
             "dataType": "JSON",
             "base_date": base_date,
@@ -85,7 +96,6 @@ def weather():
 
         res = requests.get(url, params=params)
         print(">>> KMA API 호출 URL:", res.url)
-        print(">>> KMA 응답 텍스트:", res.text)
         print(">>> KMA 응답 상태 코드:", res.status_code)
 
         if res.status_code != 200:
@@ -94,20 +104,31 @@ def weather():
 
         json_data = res.json()
         items = json_data.get("response", {}).get("body", {}).get("items", {}).get("item", [])
-        print(">>> 받은 날씨 데이터:", items)
+        print(">>> 받은 날씨 데이터 개수:", len(items))
 
-        result = {}
+        # 가장 가까운 예보 시간대의 POP, PCP, SNO 추출
+        target_items = {"POP": None, "PCP": None, "SNO": None}
+        min_diff = {"POP": float("inf"), "PCP": float("inf"), "SNO": float("inf")}
+        current_datetime = datetime.utcnow() + timedelta(hours=9)
+
         for item in items:
-            if item["category"] == "T1H":
-                result["temp"] = item["obsrValue"]
-            elif item["category"] == "REH":
-                result["humidity"] = item["obsrValue"]
-            elif item["category"] == "PTY":
-                code = str(item["obsrValue"])
-                rain_types = {
-                    "0": "없음", "1": "비", "2": "비/눈", "3": "눈", "4": "소나기"
-                }
-                result["rain_type"] = rain_types.get(code, "알 수 없음")
+            category = item["category"]
+            if category in target_items:
+                fcst_dt_str = item["fcstDate"] + item["fcstTime"]
+                try:
+                    fcst_dt = datetime.strptime(fcst_dt_str, "%Y%m%d%H%M")
+                    diff = abs((fcst_dt - current_datetime).total_seconds())
+                    if diff < min_diff[category]:
+                        min_diff[category] = diff
+                        target_items[category] = item["fcstValue"]
+                except Exception as parse_error:
+                    print(">>> 날짜 파싱 에러:", parse_error)
+
+        result = {
+            "pop": target_items["POP"],
+            "pcp": target_items["PCP"],
+            "sno": target_items["SNO"]
+        }
 
         print(">>> 최종 날씨 응답 데이터:", result)
         return jsonify(result)
