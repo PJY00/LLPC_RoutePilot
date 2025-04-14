@@ -1,15 +1,18 @@
 from flask import Flask, render_template, request, jsonify
 import os, requests
-from dotenv import load_dotenv
+from dotenv import load_dotenv,find_dotenv
 from datetime import datetime, timedelta
 import math
 
 app = Flask(__name__)
-load_dotenv()
+load_dotenv(find_dotenv())
 
 KMA_KEY = os.getenv("KMA_API_KEY")
 print(">>> KMA 키:", KMA_KEY)
-KAKAO_KEY = os.getenv("KAKAO_JS_KEY")
+# KAKAO_KEY = os.getenv("KAKAO_JS_KEY")
+TMAP_KEY=os.getenv("TMAP_JS_KEY")
+print(">>> TMAP 키:", TMAP_KEY)
+print(">>>TMAP key: ", os.getenv("TMAP_JS_KEY"))
 
 # 위도, 경도를 격자(x, y)로 변환
 def latlon_to_grid(lat, lon):
@@ -64,7 +67,7 @@ def get_latest_base_time():
 
 @app.route("/")
 def index():
-    return render_template("index.html", kakao_key=KAKAO_KEY)
+    return render_template("index.html", tmap_key=TMAP_KEY)
 
 @app.route("/weather", methods=["GET", "POST"])
 def weather():
