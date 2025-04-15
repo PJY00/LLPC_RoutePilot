@@ -1,6 +1,6 @@
 from flask import Flask, render_template, request, jsonify
 import os, requests
-from dotenv import load_dotenv,find_dotenv
+from dotenv import load_dotenv, find_dotenv
 from datetime import datetime, timedelta
 import math
 
@@ -8,11 +8,10 @@ app = Flask(__name__)
 load_dotenv(find_dotenv())
 
 KMA_KEY = os.getenv("KMA_API_KEY")
-print(">>> KMA 키:", KMA_KEY)
-# KAKAO_KEY = os.getenv("KAKAO_JS_KEY")
-TMAP_KEY=os.getenv("TMAP_JS_KEY")
-print(">>> TMAP 키:", TMAP_KEY)
-print(">>>TMAP key: ", os.getenv("TMAP_JS_KEY"))
+TMAP_KEY = os.getenv("TMAP_JS_KEY")
+print("✅ KMA_KEY:", KMA_KEY)
+print("✅ TMAP_KEY:", TMAP_KEY)
+
 
 # 위도, 경도를 격자(x, y)로 변환
 def latlon_to_grid(lat, lon):
@@ -65,25 +64,21 @@ def get_latest_base_time():
     yesterday = kst_now - timedelta(days=1)
     return yesterday.strftime("%Y%m%d"), "2330"
 
-@app.route("/")
+@app.route('/')
 def index():
     return render_template("index.html", tmap_key=TMAP_KEY)
 
-@app.route("/weather", methods=["GET", "POST"])
+@app.route("/weather", methods=["POST"])
 def weather():
     try:
         data = request.get_json()
-        print(">>> 받은 좌표:", data)
-
         if not data or "lat" not in data or "lon" not in data:
             return jsonify({"error": "위치 정보가 없습니다."}), 400
 
         lat, lon = data["lat"], data["lon"]
         x, y = latlon_to_grid(lat, lon)
 
-        # 예보 시간 계산
         base_date, base_time_str = get_latest_base_time()
-        print(f">>> 요청 base_date: {base_date}, base_time: {base_time_str}")
 
         url = "http://apis.data.go.kr/1360000/VilageFcstInfoService_2.0/getVilageFcst"
         params = {
@@ -98,20 +93,14 @@ def weather():
         }
 
         res = requests.get(url, params=params)
-        print(">>> KMA API 호출 URL:", res.url)
-        print(">>> KMA 응답 상태 코드:", res.status_code)
-
         if res.status_code != 200:
-            print(">>> KMA API 요청 실패:", res.text)
             return jsonify({"error": "기상청 API 호출 실패"}), 500
 
         json_data = res.json()
         items = json_data.get("response", {}).get("body", {}).get("items", {}).get("item", [])
-        print(">>> 받은 날씨 데이터 개수:", len(items))
 
-        # 가장 가까운 예보 시간대의 POP, PCP, SNO 추출
         target_items = {"POP": None, "PCP": None, "SNO": None}
-        min_diff = {"POP": float("inf"), "PCP": float("inf"), "SNO": float("inf")}
+        min_diff = {k: float("inf") for k in target_items}
         current_datetime = datetime.utcnow() + timedelta(hours=9)
 
         for item in items:
@@ -124,20 +113,16 @@ def weather():
                     if diff < min_diff[category]:
                         min_diff[category] = diff
                         target_items[category] = item["fcstValue"]
-                except Exception as parse_error:
-                    print(">>> 날짜 파싱 에러:", parse_error)
+                except Exception:
+                    pass
 
-        result = {
+        return jsonify({
             "pop": target_items["POP"],
             "pcp": target_items["PCP"],
             "sno": target_items["SNO"]
-        }
-
-        print(">>> 최종 날씨 응답 데이터:", result)
-        return jsonify(result)
+        })
 
     except Exception as e:
-        print(">>> 서버 에러 발생:", e)
         return jsonify({"error": "서버 에러", "message": str(e)}), 500
 
 if __name__ == "__main__":
