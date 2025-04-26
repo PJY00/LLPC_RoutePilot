@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="ko">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>RoutePilot | 날씨 기반 스마트 내비게이션</title>
+  <link rel="stylesheet" href="css/style.css">
+</head>
+
+<body>
+  <header>
+    <nav class="navbar">
+      <div class="logo">RoutePilot</div>
+      <ul class="nav-links">
+        <li><a href="#">홈</a></li>
+        <li><a href="#features">서비스 소개</a></li>
+        <li><a href="about.html">About Page</a></li>
+        <li><a href="#contact">문의</a></li>
+      </ul>
+    </nav>
+  </header>
+
+  <section class="hero">
+    <div class="hero-content">
+      <h1>날씨 기반 최적 경로 안내</h1>
+      <p>RoutePilot은 악천후를 피한 스마트한 자율주행 경로를 제공합니다.</p>
+      <a href="#" class="cta-button">서비스 체험하기</a>
+    </div>
+  </section>
+
+  <section class="features">
+    <h2>주요 기능</h2>
+    <div class="feature-list">
+      <div class="feature">
+        <h3>🛰 실시간 기상 연동</h3>
+        <p>출발지와 경유지, 목적지의 실시간 날씨 정보를 확인해 경로를 안내합니다.</p>
+      </div>
+      <div class="feature">
+        <h3>🚘 자율주행 안전성 강화</h3>
+        <p>센서 오작동을 유발하는 환경을 피하여 안전한 자율주행을 지원합니다.</p>
+      </div>
+      <div class="feature">
+        <h3>🕒 예상 도착시간 안내</h3>
+        <p>날씨를 반영한 정확한 ETA(도착 예측 시간)를 제공합니다.</p>
+      </div>
+    </div>
+  </section>
+
+  <footer>
+    <p>&copy; 2025 RoutePilot Team. All rights reserved.</p>
+  </footer>
+
+  <script>
+    // Scroll event handler
+    window.addEventListener('scroll', function () {
+      const featuresSection = document.querySelector('.features');
+      const sectionTop = featuresSection.getBoundingClientRect().top;
+      const screenHeight = window.innerHeight;
+
+      // 스크롤이 화면에 기능 섹션이 닿으면 visible 클래스 추가
+      if (sectionTop < screenHeight * 0.8) {
+        featuresSection.classList.add('visible');
+      } else {
+        featuresSection.classList.remove('visible');
+      }
+    });
+  </script>
+</body>
+
+</html>
