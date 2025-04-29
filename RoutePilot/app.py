@@ -76,13 +76,16 @@ def weather():
             return jsonify({"error": "위치 정보가 없습니다."}), 400
 
         lat, lon = data["lat"], data["lon"]
+        print(f">>> 받은 위도: {lat}, 경도: {lon}")
+
         x, y = latlon_to_grid(lat, lon)
+        print(f">>> 변환된 격자 좌표: x={x}, y={y}")
 
         base_date, base_time_str = get_latest_base_time()
+        print(f">>> 기준 날짜(base_date): {base_date}, 기준 시간(base_time): {base_time_str}")
 
-        url = "http://apis.data.go.kr/1360000/VilageFcstInfoService_2.0/getVilageFcst"
+        url = f"http://apis.data.go.kr/1360000/VilageFcstInfoService_2.0/getVilageFcst?serviceKey={KMA_KEY}"
         params = {
-            "serviceKey": KMA_KEY,
             "numOfRows": "10000",
             "pageNo": "1",
             "dataType": "JSON",
@@ -93,11 +96,20 @@ def weather():
         }
 
         res = requests.get(url, params=params)
+        print(">>> 기상청 API 요청 URL:", res.url)
+        print(">>> 응답 상태 코드:", res.status_code)
+        print(">>> 응답 본문:", res.text)
+
         if res.status_code != 200:
+            print(">>> 기상청 API 호출 실패:", res.text)
             return jsonify({"error": "기상청 API 호출 실패"}), 500
 
         json_data = res.json()
         items = json_data.get("response", {}).get("body", {}).get("items", {}).get("item", [])
+        print(f">>> 받은 날씨 데이터 개수: {len(items)}개")
+
+        if not items:
+            return jsonify({"error": "기상 데이터가 없습니다."})
 
         target_items = {"POP": None, "PCP": None, "SNO": None}
         min_diff = {k: float("inf") for k in target_items}
@@ -113,17 +125,22 @@ def weather():
                     if diff < min_diff[category]:
                         min_diff[category] = diff
                         target_items[category] = item["fcstValue"]
-                except Exception:
-                    pass
+                except Exception as parse_error:
+                    print(">>> 날짜 파싱 에러:", parse_error)
 
-        return jsonify({
+        result = {
             "pop": target_items["POP"],
             "pcp": target_items["PCP"],
             "sno": target_items["SNO"]
-        })
+        }
+        print(">>> 최종 날씨 응답 데이터:", result)
+        return jsonify(result)
 
     except Exception as e:
+        print(">>> 서버 에러 발생:", e)
         return jsonify({"error": "서버 에러", "message": str(e)}), 500
+
+
 
 if __name__ == "__main__":
     app.run(debug=True)
