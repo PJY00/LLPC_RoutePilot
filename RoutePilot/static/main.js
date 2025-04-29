@@ -36,44 +36,43 @@ function initMapAndWeather() {
       // 날씨 정보 갱신
       updateWeather(lat, lon);
       setInterval(() => updateWeather(lat, lon), 10 * 60 * 1000);
+
+      // 지도 클릭 이벤트: 마커 찍고 경로 요청
+      map.addListener("click", function (evt) {
+        const lat = evt.latLng._lat;
+        const lon = evt.latLng._lng;
+
+        if (!startMarker) {
+          startMarker = new Tmapv2.Marker({
+            position: new Tmapv2.LatLng(lat, lon),
+            icon: "https://tmapapi.sktelecom.com/upload/tmap/marker/pin_r_m_s.png",
+            map: map
+          });
+        } else if (!endMarker) {
+          endMarker = new Tmapv2.Marker({
+            position: new Tmapv2.LatLng(lat, lon),
+            icon: "https://tmapapi.sktelecom.com/upload/tmap/marker/pin_r_m_e.png",
+            map: map
+          });
+
+          requestRoute(startMarker.getPosition(), endMarker.getPosition());
+        } else {
+          startMarker.setMap(null);
+          endMarker.setMap(null);
+          startMarker = null;
+          endMarker = null;
+          if (routeLayer) {
+            routeLayer.setMap(null);
+          }
+        }
+      });
+
     }, (error) => {
       console.error("위치 정보 가져오기 실패:", error);
     });
   } else {
     console.error("위치 정보 지원하지 않음");
   }
-
-  // 지도 클릭 이벤트: 마커 찍고 경로 요청
-  document.getElementById("map").addEventListener("click", function (e) {
-    map.addListener("click", function (evt) {
-      const lat = evt.latLng._lat;
-      const lon = evt.latLng._lng;
-
-      if (!startMarker) {
-        startMarker = new Tmapv2.Marker({
-          position: new Tmapv2.LatLng(lat, lon),
-          icon: "https://tmapapi.sktelecom.com/upload/tmap/marker/pin_r_m_s.png",
-          map: map
-        });
-      } else if (!endMarker) {
-        endMarker = new Tmapv2.Marker({
-          position: new Tmapv2.LatLng(lat, lon),
-          icon: "https://tmapapi.sktelecom.com/upload/tmap/marker/pin_r_m_e.png",
-          map: map
-        });
-
-        requestRoute(startMarker.getPosition(), endMarker.getPosition());
-      } else {
-        startMarker.setMap(null);
-        endMarker.setMap(null);
-        startMarker = null;
-        endMarker = null;
-        if (routeLayer) {
-          routeLayer.setMap(null);
-        }
-      }
-    });
-  });
 }
 
 // 날씨 갱신 함수
@@ -83,10 +82,16 @@ function updateWeather(lat, lon) {
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ lat, lon })
   })
-    .then(res => res.json())
+    .then(res => {
+      if (!res.ok) {
+        throw new Error(`서버 오류: ${res.status} - ${res.statusText}`);
+      }
+      return res.json();
+    })
     .then(data => {
       if (data.error) {
         document.getElementById("weather_info").innerText = "날씨 데이터를 불러오지 못했습니다.";
+        console.error("날씨 데이터 오류:", data.error);
         return;
       }
 
@@ -109,6 +114,10 @@ function updateWeather(lat, lon) {
         type: 2,
         map: map
       });
+    })
+    .catch(error => {
+      console.error("날씨 정보 요청 오류:", error);
+      document.getElementById("weather_info").innerText = "날씨 데이터를 불러오지 못했습니다.";
     });
 }
 
@@ -141,6 +150,10 @@ function requestRoute(start, end) {
 
       // 거리 및 시간 표시
       document.getElementById("route_info").innerText = `🛣 거리: ${data.distance}m | 🕒 시간: ${data.time}분`;
+    })
+    .catch(error => {
+      console.error("경로 요청 오류:", error);
+      alert("경로를 불러오는 중 오류가 발생했습니다.");
     });
 }
 
