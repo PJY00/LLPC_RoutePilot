@@ -157,5 +157,57 @@ function requestRoute(start, end) {
     });
 }
 
+function getCurrentLocation() {
+  if (navigator.geolocation) {
+    navigator.geolocation.getCurrentPosition((pos) => {
+      const lat = pos.coords.latitude;
+      const lon = pos.coords.longitude;
+
+      document.getElementById("start-lat").value = lat;
+      document.getElementById("start-lng").value = lon;
+
+      // 주소 조회 요청
+      fetchReverseGeocoding(lon, lat)
+        .then(address => {
+          document.getElementById("start-address").value = address;
+        })
+        .catch(err => {
+          console.error("주소 변환 실패:", err);
+          document.getElementById("start-address").value = "주소 조회 실패";
+        });
+    }, (err) => {
+      console.error("위치 접근 실패:", err);
+      alert("위치 정보를 가져오지 못했습니다.");
+    });
+  } else {
+    alert("이 브라우저는 위치 정보를 지원하지 않습니다.");
+  }
+}
+
+// Tmap Reverse Geocoding API로 주소 가져오는 함수
+function fetchReverseGeocoding(lon, lat) {
+  const appKey = "발급받은AppKey";  // 실제 발급 받은 키로 교체
+
+  return fetch(`https://apis.openapi.sk.com/tmap/geo/reversegeocoding?version=1&format=json&lon=${lon}&lat=${lat}&coordType=WGS84GEO&addressType=A10`, {
+    method: "GET",
+    headers: {
+      "appKey": appKey
+    }
+  })
+    .then(res => {
+      if (!res.ok) throw new Error("네트워크 오류");
+      return res.json();
+    })
+    .then(data => {
+      const info = data.addressInfo;
+      let result = info.city_do + ' ' + info.gu_gun + ' ';
+      if (info.eup_myun) {
+        result += info.eup_myun + ' ';
+      }
+      result += info.roadName + ' ' + info.buildingIndex;
+      return result.trim();
+    });
+}
+
 // 페이지 로드 후 실행
 window.onload = initMapAndWeather;
