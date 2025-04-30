@@ -105,3 +105,12 @@ footer {
   transform: translateY(-8px); /* 위로 살짝 떠오름 */
   box-shadow: 0 12px 24px rgba(0, 0, 0, 0.15); /* 그림자 강조 */
 }
+
+
+/* 언어 로고 아이콘 */
+.lang-icon {
+  width: 20px;
+  height: 20px;
+  margin-right: 8px;
+  vertical-align: middle;
+}
