@@ -31,17 +31,31 @@
     <label>도착 경도: <input type="text" name="end_lng" required></label><br>
     <label>출발 시간: <input type="datetime-local" name="departure_time" required></label><br>
     <button type="submit">경로 보기</button>
+    <button type="button" id="currentLocationBtn" onclick="setCurrentLocation()"> Set Current Location</button>
   </form>
 
   <div id="weatherInfo">날씨 정보를 불러오는 중...</div>
 
   <div id="map"></div>
 
-  <script>
-    // 여기에 TMAP API 연동 및 날씨 정보 표시용 JavaScript가 들어갈 수 있습니다.
+<script>
+    // 현재 위치를 출발지로 자동 설정
+    function setCurrentLocation() {
+      if (navigator.geolocation) {
+        navigator.geolocation.getCurrentPosition(function(pos) {
+          document.querySelector('input[name="start_lat"]').value = pos.coords.latitude;
+          document.querySelector('input[name="start_lng"]').value = pos.coords.longitude;
+        }, function() {
+          alert("현재 위치를 가져올 수 없습니다.");
+        });
+      } else {
+        alert("이 브라우저는 위치 정보를 지원하지 않습니다.");
+      }
+    }
+
+    // 경로 보기 버튼 작동
     document.getElementById("routeForm").addEventListener("submit", function(e) {
       e.preventDefault();
-      // 추후: 경로 요청 및 날씨 API 호출 로직 추가
       alert("경로 및 날씨 데이터를 처리하는 로직이 여기에 들어갑니다.");
     });
   </script>
