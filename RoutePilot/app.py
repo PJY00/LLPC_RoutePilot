@@ -140,34 +140,39 @@ def weather():
         print(">>> 서버 에러 발생:", e)
         return jsonify({"error": "서버 에러", "message": str(e)}), 500
 
-@app.route("/tmap-proxy", methods=["POST"])
-def tmap_proxy():
-    try:
-        data = request.get_json()
-        url = data.get("url")
-        params = data.get("params", {})
-        headers = data.get("headers", {})
+@app.route("/reverse-geocode", methods=["POST"])
+def reverse_geocode():
+    data = request.get_json()
+    lon = data.get("lon")
+    lat = data.get("lat")
+    if lon is None or lat is None:
+        return jsonify({"error": "lon/lat 파라미터가 필요합니다."}), 400
 
-        # TMAP_KEY를 서버에서 삽입
-        headers["appKey"] = TMAP_KEY
+    url = "https://apis.openapi.sk.com/tmap/geo/reversegeocoding"
+    params = {
+        "version": 1,
+        "format": "json",
+        "lon": lon,
+        "lat": lat,
+        "coordType": "WGS84GEO",
+        "addressType": "A10"
+    }
+    headers = {"appKey": TMAP_KEY}
 
-        # 요청 URL과 파라미터 출력
-        print(">>> TMAP 요청 URL:", url)
-        print(">>> TMAP 요청 파라미터:", params)  # params가 어떤 값을 전달하는지 확인
-        print(">>> TMAP 요청 헤더:", headers)
+    res = requests.get(url, headers=headers, params=params)
+    if res.status_code != 200:
+        return jsonify({"error": "TMap API 호출 실패"}), res.status_code
 
-        # TMap API 호출
-        res = requests.get(url, headers=headers, params=params)
-
-        # 응답 출력
-        print(">>> TMAP 응답 데이터:", res.json())  # 응답 데이터 출력
-
-        return jsonify(res.json()), res.status_code
-
-    except Exception as e:
-        print(">>> TMAP 프록시 에러:", e)
-        return jsonify({"error": "TMAP 프록시 에러", "message": str(e)}), 500
-
+    data = res.json()
+    # 주소 정보만 리턴 (불필요한 데이터 제외)
+    info = data.get("addressInfo", {})
+    return jsonify({
+        "city_do":    info.get("city_do"),
+        "gu_gun":     info.get("gu_gun"),
+        "eup_myun":   info.get("eup_myun"),
+        "roadName":   info.get("roadName"),
+        "buildingIndex": info.get("buildingIndex")
+    })
 
 @app.route('/about')
 def about():
