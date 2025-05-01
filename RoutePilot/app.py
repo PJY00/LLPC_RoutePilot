@@ -140,7 +140,42 @@ def weather():
         print(">>> 서버 에러 발생:", e)
         return jsonify({"error": "서버 에러", "message": str(e)}), 500
 
+@app.route("/tmap-proxy", methods=["POST"])
+def tmap_proxy():
+    try:
+        data = request.get_json()
+        url = data.get("url")
+        params = data.get("params", {})
+        headers = data.get("headers", {})
 
+        # TMAP_KEY를 서버에서 삽입
+        headers["appKey"] = TMAP_KEY
+
+        # 요청 URL과 파라미터 출력
+        print(">>> TMAP 요청 URL:", url)
+        print(">>> TMAP 요청 파라미터:", params)  # params가 어떤 값을 전달하는지 확인
+        print(">>> TMAP 요청 헤더:", headers)
+
+        # TMap API 호출
+        res = requests.get(url, headers=headers, params=params)
+
+        # 응답 출력
+        print(">>> TMAP 응답 데이터:", res.json())  # 응답 데이터 출력
+
+        return jsonify(res.json()), res.status_code
+
+    except Exception as e:
+        print(">>> TMAP 프록시 에러:", e)
+        return jsonify({"error": "TMAP 프록시 에러", "message": str(e)}), 500
+
+
+@app.route('/about')
+def about():
+    return render_template("about.html")
+
+@app.route('/help')
+def help():
+    return render_template("about.html")
 
 if __name__ == "__main__":
     app.run(debug=True)
