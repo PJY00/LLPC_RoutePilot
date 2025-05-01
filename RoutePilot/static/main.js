@@ -104,7 +104,8 @@ function updateWeather(lat, lon) {
       marker = new Tmapv2.Marker({
         position: position,
         map: map,
-        icon: "https://tmapapi.sktelecom.com/upload/tmap/marker/pin_r_m_p.png"
+        icon: "/static/images/marker.png",
+        iconSize: new Tmapv2.Size(24, 24)
       });
 
       const infoContent = `<div style="padding:5px; background:white; border-radius:8px;">🌧 ${data.pop || "?"}%</div>`;
@@ -186,7 +187,7 @@ function getCurrentLocation() {
 
 // Tmap Reverse Geocoding API로 주소 가져오는 함수
 function fetchReverseGeocoding(lon, lat) {
-  const appKey = "발급받은AppKey";  // 실제 발급 받은 키로 교체
+  const appKey = "XUf44Gql1M2PMRBFyZxFu8Ps3Go3E2OG7lPwIosn";  // 실제 발급 받은 키로 교체
 
   return fetch(`https://apis.openapi.sk.com/tmap/geo/reversegeocoding?version=1&format=json&lon=${lon}&lat=${lat}&coordType=WGS84GEO&addressType=A10`, {
     method: "GET",
@@ -207,6 +208,68 @@ function fetchReverseGeocoding(lon, lat) {
       result += info.roadName + ' ' + info.buildingIndex;
       return result.trim();
     });
+}
+
+// 3) 버튼 클릭 시 도착지 주소 → 좌표 변환 → 마커 표시
+function setupAddressGeocode() {
+  $("#btn_select").click(() => {
+    const fullAddr = $("#fullAddr").val().trim();
+    if (!fullAddr) {
+      alert("도착지 주소를 입력하세요.");
+      return;
+    }
+
+    // Tmap fullAddrGeo API 호출 (jQuery AJAX)
+    $.ajax({
+      url: "https://apis.openapi.sk.com/tmap/geo/fullAddrGeo",
+      method: "GET",
+      dataType: "json",
+      async: false,
+      data: {
+        version: 1,
+        format: "json",
+        coordType: "WGS84GEO",
+        fullAddr
+      },
+      headers: { appKey: "XUf44Gql1M2PMRBFyZxFu8Ps3Go3E2OG7lPwIosn" },
+
+      success: response => {
+        const coords = response.coordinateInfo.coordinate;
+        if (!coords.length) {
+          $("#result").text("주소를 찾을 수 없습니다.");
+          return;
+        }
+        const pt = coords[0];
+        const lat = pt.lat || pt.newLat;
+        const lon = pt.lon || pt.newLon;
+
+        // 기존 도착 마커 제거
+        if (endMarker) endMarker.setMap(null);
+
+        // 도착지 마커 생성
+        endMarker = new Tmapv2.Marker({
+          position: new Tmapv2.LatLng(lat, lon),
+          icon: "/static/images/marker.png",
+          iconSize: new Tmapv2.Size(24, 24),
+          map: map
+        });
+
+        // 지도 중심 이동
+        map.setCenter(new Tmapv2.LatLng(lat, lon));
+        $("#result").text(`도착지: ${fullAddr} (위경도: ${lat}, ${lon})`);
+
+        // 출발 마커가 있다면 경로 요청
+        if (marker) {
+          requestRoute(marker.getPosition(), endMarker.getPosition());
+        }
+      },
+
+      error: (req, status, err) => {
+        console.error("주소 변환 AJAX 오류:", status, err);
+        $("#result").text("주소 변환 중 오류가 발생했습니다.");
+      }
+    });
+  });
 }
 
 // 페이지 로드 후 실행
