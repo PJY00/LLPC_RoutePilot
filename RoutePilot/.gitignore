@@ -1,5 +1,2 @@
 .env
-__pycache__/
-*.pyc
-node_modules
 (temp)map.html
