@@ -174,6 +174,28 @@ def reverse_geocode():
         "buildingIndex": info.get("buildingIndex")
     })
 
+@app.route("/fulladdr-geocode", methods=["POST"])
+def fulladdr_geocode():
+    fullAddr = request.json.get("fullAddr")
+    if not fullAddr:
+        return jsonify({"error": "Missing address"}), 400
+
+    url = "https://apis.openapi.sk.com/tmap/geo/fullAddrGeo"
+    headers = { "appKey": TMAP_KEY }
+    params = {
+        "version": 1,
+        "format": "json",
+        "coordType": "WGS84GEO",
+        "fullAddr": fullAddr
+    }
+
+    try:
+        res = requests.get(url, headers=headers, params=params)
+        res.raise_for_status()
+        return jsonify(res.json())
+    except requests.exceptions.RequestException as e:
+        return jsonify({"error": str(e)}), 500
+
 @app.route('/about')
 def about():
     return render_template("about.html")
