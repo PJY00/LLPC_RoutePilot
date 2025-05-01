@@ -215,26 +215,20 @@ function setupAddressGeocode() {
       return;
     }
 
-    // Tmap fullAddrGeo API 호출 (jQuery AJAX)
+    // Flask 서버의 프록시 엔드포인트로 요청
     $.ajax({
-      url: "https://apis.openapi.sk.com/tmap/geo/fullAddrGeo",
-      method: "GET",
-      dataType: "json",
-      async: false,
-      data: {
-        version: 1,
-        format: "json",
-        coordType: "WGS84GEO",
-        fullAddr
-      },
-      headers: { appKey: "XUf44Gql1M2PMRBFyZxFu8Ps3Go3E2OG7lPwIosn" },
+      url: "/fulladdr-geocode",
+      method: "POST",
+      contentType: "application/json",
+      data: JSON.stringify({ fullAddr }),
 
       success: response => {
-        const coords = response.coordinateInfo.coordinate;
-        if (!coords.length) {
+        const coords = response.coordinateInfo?.coordinate;
+        if (!coords || !coords.length) {
           $("#result").text("주소를 찾을 수 없습니다.");
           return;
         }
+
         const pt = coords[0];
         const lat = pt.lat || pt.newLat;
         const lon = pt.lon || pt.newLon;
@@ -242,7 +236,7 @@ function setupAddressGeocode() {
         // 기존 도착 마커 제거
         if (endMarker) endMarker.setMap(null);
 
-        // 도착지 마커 생성
+        // 도착 마커 생성
         endMarker = new Tmapv2.Marker({
           position: new Tmapv2.LatLng(lat, lon),
           icon: "/static/images/marker.png",
@@ -250,18 +244,16 @@ function setupAddressGeocode() {
           map: map
         });
 
-        // 지도 중심 이동
         map.setCenter(new Tmapv2.LatLng(lat, lon));
         $("#result").text(`도착지: ${fullAddr} (위경도: ${lat}, ${lon})`);
 
-        // 출발 마커가 있다면 경로 요청
         if (marker) {
           requestRoute(marker.getPosition(), endMarker.getPosition());
         }
       },
 
       error: (req, status, err) => {
-        console.error("주소 변환 AJAX 오류:", status, err);
+        console.error("주소 변환 오류:", status, err);
         $("#result").text("주소 변환 중 오류가 발생했습니다.");
       }
     });
