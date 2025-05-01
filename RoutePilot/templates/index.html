@@ -16,19 +16,21 @@
 
   <div class="row mb-3">
     <div class="col-md-6">
-      <input type="text" id="start-lat" class="form-control mb-2" placeholder="출발 위도">
-      <input type="text" id="start-lng" class="form-control mb-2" placeholder="출발 경도">
+
       <input type="text" id="start-address" class="form-control mb-2" placeholder="출발 주소" readonly>
     </div>
     <div class="col-md-6">
       <input type="text" id="fullAddr" class="form-control mb-2" placeholder="도착지 주소 입력">
-      <button id="btn_select" class="btn btn-primary mb-2" onclick="setupAddressGeocode()">도착지 적용</button>
+
     </div>
   </div>
 
   <div class="mb-3">
-    <button class="btn btn-primary" onclick="drawRoute()">경로 보기</button>
     <button class="btn btn-secondary" onclick="getCurrentLocation()">현재 위치를 출발지로</button>
+    <button id="btn_select" class="btn btn-primary" onclick="setupAddressGeocode()">도착지 적용</button>
+  </div>
+  <div class="mb-3">
+    <button class="btn btn-primary" onclick="drawRoute()">경로 보기</button>
   </div>
 
   <p id="info"></p>
