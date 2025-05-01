@@ -187,26 +187,22 @@ function getCurrentLocation() {
 
 // Tmap Reverse Geocoding API로 주소 가져오는 함수
 function fetchReverseGeocoding(lon, lat) {
-  const appKey = "XUf44Gql1M2PMRBFyZxFu8Ps3Go3E2OG7lPwIosn";  // 실제 발급 받은 키로 교체
-
-  return fetch(`https://apis.openapi.sk.com/tmap/geo/reversegeocoding?version=1&format=json&lon=${lon}&lat=${lat}&coordType=WGS84GEO&addressType=A10`, {
-    method: "GET",
-    headers: {
-      "appKey": appKey
-    }
+  return fetch("/reverse-geocode", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ lon, lat })
   })
-    .then(res => {
-      if (!res.ok) throw new Error("네트워크 오류");
-      return res.json();
-    })
+    .then(res => res.json())
     .then(data => {
-      const info = data.addressInfo;
-      let result = info.city_do + ' ' + info.gu_gun + ' ';
-      if (info.eup_myun) {
-        result += info.eup_myun + ' ';
-      }
-      result += info.roadName + ' ' + info.buildingIndex;
-      return result.trim();
+      if (data.error) throw new Error(data.error);
+      const parts = [
+        data.city_do,
+        data.gu_gun,
+        data.eup_myun,
+        data.roadName,
+        data.buildingIndex
+      ].filter(Boolean);
+      return parts.join(" ");
     });
 }
 
