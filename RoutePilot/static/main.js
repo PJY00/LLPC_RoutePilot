@@ -7,6 +7,7 @@ let routeMarkers = [];
 
 let startLat = null;
 let startLon = null;
+//거리계산 함수수
 function calculateDistance(lat1, lon1, lat2, lon2) {
     const R = 6371000; // 지구 반지름(m)
     const toRad = deg => deg * Math.PI / 180;
@@ -20,7 +21,112 @@ function calculateDistance(lat1, lon1, lat2, lon2) {
     return R * c; // m 단위 거리 반환
 }
 
+function fetchRouteRisk(startX, startY, endX, endY, option, trafficInfo) {
+    return new Promise((resolve, reject) => {
+        $.ajax({
+            type: "POST",
+            url: `https://apis.openapi.sk.com/tmap/routes?version=1&format=json&appKey=${APPKEY}`,
+            data: {
+                startX, startY, endX, endY,
+                reqCoordType: "WGS84GEO",
+                resCoordType: "EPSG3857",
+                searchOption: option,
+                trafficInfo
+            },
+            success: res => {
+                let totalDist = 0, lastKm = 0, risk = 0;
+                const promises = [];
+
+                res.features.forEach(seg => {
+                    if (seg.geometry.type !== "LineString") return;
+                    // 좌표 변환
+                    const pts = seg.geometry.coordinates.map(c => {
+                        const p = new Tmapv2.Point(c[0], c[1]);
+                        return new Tmapv2.Projection.convertEPSG3857ToWGS84GEO(p);
+                    });
+                    // 1km마다 PCP 합산
+                    for (let i = 1; i < pts.length; i++) {
+                        totalDist += calculateDistance(pts[i - 1]._lat, pts[i - 1]._lng, pts[i]._lat, pts[i]._lng);
+                        const km = Math.floor(totalDist / 1000);
+                        if (km > lastKm) {
+                            lastKm = km;
+                            const roundedLat = Math.round(pts[i]._lat * 100) / 100;
+                            const roundedLon = Math.round(pts[i]._lng * 100) / 100;
+                            promises.push(
+                                fetch("/weather", {
+                                    method: "POST",
+                                    headers: { "Content-Type": "application/json" },
+                                    body: JSON.stringify({ lat: roundedLat, lon: roundedLon })
+                                })
+                                    .then(r => r.json())
+                                    .then(d => { risk += parseFloat(d.pcp) || 0; })
+                            );
+                        }
+                    }
+                });
+
+                Promise.all(promises)
+                    .then(() => resolve({ option, risk, features: res.features }))
+                    .catch(reject);
+            },
+            error: reject
+        });
+    });
+}
+
+function drawRouteWithRisk() {
+    if (!startMarker || !endMarker) {
+        return alert("출발지와 도착지를 먼저 선택하세요.");
+    }
+    const s = startMarker.getPosition(), e = endMarker.getPosition();
+    const traf = document.getElementById("trafficInfo").value;
+    // 옵션 0,1(최소시간),2(추천) 세 가지 모두 평가
+    const tasks = ["0", "1", "2"].map(opt =>
+        fetchRouteRisk(s._lng, s._lat, e._lng, e._lat, opt, traf)
+    );
+
+    Promise.all(tasks).then(results => {
+        // 리스크 오름차순 정렬 → 최적 경로 선택
+        results.sort((a, b) => a.risk - b.risk);
+        const best = results[0];
+        console.log(`최적 경로 옵션: ${best.option} (강수량 리스크: ${best.risk.toFixed(1)})`);
+
+        // 지도에 그리기
+        resetRouteData();
+        best.features.forEach(seg => {
+            if (seg.geometry.type === "LineString") {
+                const pts = seg.geometry.coordinates.map(c => {
+                    const p = new Tmapv2.Point(c[0], c[1]);
+                    return new Tmapv2.Projection.convertEPSG3857ToWGS84GEO(p);
+                });
+                const trafficArr = (traf === "Y") ? seg.geometry.traffic : [];
+                drawLine(pts, trafficArr);
+            } else {
+                const prop = seg.properties;
+                const url = prop.pointType === "S"
+                    ? "https://tmapapi.sktelecom.com/upload/tmap/marker/pin_r_m_s.png"
+                    : prop.pointType === "E"
+                        ? "https://tmapapi.sktelecom.com/upload/tmap/marker/pin_r_m_e.png"
+                        : "http://topopen.tmap.co.kr/imgs/point.png";
+                const p = new Tmapv2.Point(seg.geometry.coordinates[0], seg.geometry.coordinates[1]);
+                const cp = new Tmapv2.Projection.convertEPSG3857ToWGS84GEO(p);
+                addPOIMarker(cp._lat, cp._lng, url, prop.pointType);
+            }
+        });
+
+        // 요약정보 업데이트
+        const prop0 = best.features[0].properties;
+        document.getElementById("route_info").innerText =
+            `🛣 거리: ${(prop0.totalDistance / 1000).toFixed(1)}km | 🕒 ${(prop0.totalTime / 60).toFixed(0)}분`;
+    })
+        .catch(err => {
+            console.error("리스크 기반 경로 계산 오류:", err);
+            alert("경로를 가져오는 중 오류가 발생했습니다.");
+        });
+}
+
 function drawRoute() {
+    drawRouteWithRisk();
     if (!startMarker || !endMarker) {
         return alert("지도에서 출발지와 도착지를 먼저 선택하세요.");
     }
