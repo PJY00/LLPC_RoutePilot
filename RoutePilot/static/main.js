@@ -74,24 +74,23 @@ function fetchRouteRisk(startX, startY, endX, endY, option, trafficInfo) {
     });
 }
 
-function drawRouteWithRisk() {
-    if (!startMarker || !endMarker) {
-        return alert("출발지와 도착지를 먼저 선택하세요.");
-    }
-    const s = startMarker.getPosition(), e = endMarker.getPosition();
-    const traf = document.getElementById("trafficInfo").value;
-    // 옵션 0,1(최소시간),2(추천) 세 가지 모두 평가
-    const tasks = ["0", "1", "2"].map(opt =>
-        fetchRouteRisk(s._lng, s._lat, e._lng, e._lat, opt, traf)
-    );
+function drawRecommendedRoute(startX, startY, endX, endY, trafficInfo) {
+    // 0,1,2 옵션 전부 평가
+    Promise.all(
+        ["0", "1", "2"].map(opt =>
+            fetchRouteRisk(startX, startY, endX, endY, opt, trafficInfo)
+        )
+    ).then(results => {
+        // 1) 최소 리스크 찾기
+        const minRisk = Math.min(...results.map(r => r.risk));
+        // 2) 그 중에 최소시간 경로로 다시 추려내기
+        const candidates = results.filter(r => r.risk === minRisk);
+        candidates.sort((a, b) => a.totalTime - b.totalTime);
+        const best = candidates[0];
 
-    Promise.all(tasks).then(results => {
-        // 리스크 오름차순 정렬 → 최적 경로 선택
-        results.sort((a, b) => a.risk - b.risk);
-        const best = results[0];
-        console.log(`최적 경로 옵션: ${best.option} (강수량 리스크: ${best.risk.toFixed(1)})`);
+        console.log(`추천 경로(0번): 옵션 ${best.option}, 리스크 ${best.risk.toFixed(1)}, 시간 ${(best.totalTime / 60).toFixed(0)}분`);
 
-        // 지도에 그리기
+        // 지도에 표시
         resetRouteData();
         best.features.forEach(seg => {
             if (seg.geometry.type === "LineString") {
@@ -99,45 +98,54 @@ function drawRouteWithRisk() {
                     const p = new Tmapv2.Point(c[0], c[1]);
                     return new Tmapv2.Projection.convertEPSG3857ToWGS84GEO(p);
                 });
-                const trafficArr = (traf === "Y") ? seg.geometry.traffic : [];
-                drawLine(pts, trafficArr);
+                const trafArr = (trafficInfo === "Y") ? seg.geometry.traffic : [];
+                drawLine(pts, trafArr);
             } else {
-                const prop = seg.properties;
-                const url = prop.pointType === "S"
+                const url = seg.properties.pointType === "S"
                     ? "https://tmapapi.sktelecom.com/upload/tmap/marker/pin_r_m_s.png"
-                    : prop.pointType === "E"
+                    : seg.properties.pointType === "E"
                         ? "https://tmapapi.sktelecom.com/upload/tmap/marker/pin_r_m_e.png"
                         : "http://topopen.tmap.co.kr/imgs/point.png";
                 const p = new Tmapv2.Point(seg.geometry.coordinates[0], seg.geometry.coordinates[1]);
                 const cp = new Tmapv2.Projection.convertEPSG3857ToWGS84GEO(p);
-                addPOIMarker(cp._lat, cp._lng, url, prop.pointType);
+                addPOIMarker(cp._lat, cp._lng, url, seg.properties.pointType);
             }
         });
-
-        // 요약정보 업데이트
-        const prop0 = best.features[0].properties;
+        // 요약정보
+        const p0 = best.features[0].properties;
         document.getElementById("route_info").innerText =
-            `🛣 거리: ${(prop0.totalDistance / 1000).toFixed(1)}km | 🕒 ${(prop0.totalTime / 60).toFixed(0)}분`;
+            `🛣 거리: ${(p0.totalDistance / 1000).toFixed(1)}km | 🕒 ${(p0.totalTime / 60).toFixed(0)}분`;
     })
         .catch(err => {
-            console.error("리스크 기반 경로 계산 오류:", err);
-            alert("경로를 가져오는 중 오류가 발생했습니다.");
+            console.error("추천 경로 오류:", err);
+            alert("추천 경로를 불러오는 중 오류가 발생했습니다.");
         });
+}
+function drawFastestRoute(startX, startY, endX, endY, trafficInfo) {
+    // 그냥 Tmap의 '1번(최소시간)' 옵션 호출
+    searchAndDrawRoute(startX, startY, endX, endY, "1", trafficInfo);
 }
 
 function drawRoute() {
-    drawRouteWithRisk();
     if (!startMarker || !endMarker) {
         return alert("지도에서 출발지와 도착지를 먼저 선택하세요.");
     }
     const opt = document.getElementById("selectLevel").value;
     const traf = document.getElementById("trafficInfo").value;
     const s = startMarker.getPosition(), e = endMarker.getPosition();
-    searchAndDrawRoute(
-        s._lng, s._lat,
-        e._lng, e._lat,
-        opt, traf
-    );
+
+    if (opt === "0") {
+        // 0번 → 날씨 기준 추천 경로
+        drawRecommendedRoute(s._lng, s._lat, e._lng, e._lat, traf);
+
+    } else if (opt === "2") {
+        // 2번 → 최소시간 경로 (날씨 무시)
+        drawFastestRoute(s._lng, s._lat, e._lng, e._lat, traf);
+
+    } else {
+        // 1번(또는 그 외) → 기존 Tmap 옵션 대로
+        searchAndDrawRoute(s._lng, s._lat, e._lng, e._lat, opt, traf);
+    }
 }
 
 function initMapAndWeather() {
