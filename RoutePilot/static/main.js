@@ -7,6 +7,18 @@ let routeMarkers = [];
 
 let startLat = null;
 let startLon = null;
+function calculateDistance(lat1, lon1, lat2, lon2) {
+    const R = 6371000; // 지구 반지름(m)
+    const toRad = deg => deg * Math.PI / 180;
+    const dLat = toRad(lat2 - lat1);
+    const dLon = toRad(lon2 - lon1);
+
+    const a = Math.sin(dLat / 2) ** 2 +
+        Math.cos(toRad(lat1)) * Math.cos(toRad(lat2)) *
+        Math.sin(dLon / 2) ** 2;
+    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+    return R * c; // m 단위 거리 반환
+}
 
 function drawRoute() {
     if (!startMarker || !endMarker) {
@@ -163,34 +175,69 @@ function searchAndDrawRoute(startX, startY, endX, endY, searchOption, trafficInf
             searchOption, trafficInfo
         },
         success: function (res) {
-            const feat = res.features,
-                prop0 = feat[0].properties;
-            // 요약정보
-            document.getElementById("route_info").innerText =
-                `🛣 거리: ${(prop0.totalDistance / 1000).toFixed(1)}km | 🕒 ${(prop0.totalTime / 60).toFixed(0)}분`;
+            const feat = res.features;
+            // 1km마다 샘플링하기 위한 변수
+            let totalDist = 0;    // 누적 거리(m)
+            let lastKmMark = 0;   // 직전 샘플 km 지점
 
             feat.forEach(seg => {
-                const geom = seg.geometry, prop = seg.properties;
-                if (geom.type === "LineString") {
-                    // 좌표 변환
-                    const pts = geom.coordinates.map(c => {
+                if (seg.geometry.type === "LineString") {
+                    // EPSG3857 → WGS84 좌표 변환
+                    const pts = seg.geometry.coordinates.map(c => {
                         const p = new Tmapv2.Point(c[0], c[1]);
                         return new Tmapv2.Projection.convertEPSG3857ToWGS84GEO(p);
                     });
-                    const trafficArr = (trafficInfo === "Y") ? geom.traffic : [];
+
+                    // 각 구간 사이 거리 누적하면서 1km마다 날씨 요청
+                    for (let i = 1; i < pts.length; i++) {
+                        const p0 = pts[i - 1], p1 = pts[i];
+                        const d = calculateDistance(p0._lat, p0._lng, p1._lat, p1._lng);
+                        totalDist += d;
+
+                        // 새로 1km 지점에 도달했으면
+                        if (Math.floor(totalDist / 1000) > lastKmMark) {
+                            lastKmMark++;
+                            // 격자 반올림: 소수점 둘째 자리까지
+                            const roundedLat = Math.round(p1._lat * 100) / 100;
+                            const roundedLon = Math.round(p1._lng * 100) / 100;
+
+                            fetch("/weather", {
+                                method: "POST",
+                                headers: { "Content-Type": "application/json" },
+                                body: JSON.stringify({ lat: roundedLat, lon: roundedLon })
+                            })
+                                .then(res => res.json())
+                                .then(data => {
+                                    console.log(`${lastKmMark}km :`, data);
+                                })
+                                .catch(err => {
+                                    console.error(`${lastKmMark}km 날씨 요청 실패:`, err);
+                                });
+                        }
+                    }
+
+                    // 원래 교통정보 반영해서 그리기
+                    const trafficArr = (trafficInfo === "Y") ? seg.geometry.traffic : [];
                     drawLine(pts, trafficArr);
+
                 } else {
-                    // S/E/P 마커
+                    // 기존 S/E/P 마커 그리기
+                    const prop = seg.properties;
                     const url = prop.pointType === "P"
                         ? "http://topopen.tmap.co.kr/imgs/point.png"
                         : prop.pointType === "S"
                             ? "https://tmapapi.sktelecom.com/upload/tmap/marker/pin_r_m_s.png"
                             : "https://tmapapi.sktelecom.com/upload/tmap/marker/pin_r_m_e.png";
-                    const p = new Tmapv2.Point(geom.coordinates[0], geom.coordinates[1]),
-                        cp = new Tmapv2.Projection.convertEPSG3857ToWGS84GEO(p);
+                    const p = new Tmapv2.Point(seg.geometry.coordinates[0], seg.geometry.coordinates[1]);
+                    const cp = new Tmapv2.Projection.convertEPSG3857ToWGS84GEO(p);
                     addPOIMarker(cp._lat, cp._lng, url, prop.pointType);
                 }
             });
+
+            // 요약정보 업데이트
+            const prop0 = feat[0].properties;
+            document.getElementById("route_info").innerText =
+                `🛣 거리: ${(prop0.totalDistance / 1000).toFixed(1)}km | 🕒 ${(prop0.totalTime / 60).toFixed(0)}분`;
         },
         error: function (err) {
             console.error("경로 API 오류", err);
