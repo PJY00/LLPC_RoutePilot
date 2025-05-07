@@ -29,14 +29,44 @@
     <button class="btn btn-secondary" onclick="getCurrentLocation()">현재 위치를 출발지로</button>
     <button id="btn_select" class="btn btn-primary" onclick="setupAddressGeocode()">도착지 적용</button>
   </div>
+
+  <div class="row mb-3">
+    <div class="col-md-6">
+      <label class="form-label">탐색 옵션</label>
+      <select id="selectLevel" class="form-select">
+        <option value="0">교통최적+추천</option>
+        <option value="1">교통최적+무료우선</option>
+        <option value="2">교통최적+최소시간</option>
+        <option value="3">교통최적+초보</option>
+        <option value="4">교통최적+고속도로우선</option>
+        <option value="10">최단거리+유·무료</option>
+        <option value="12">이륜차도로우선</option>
+        <option value="19">어린이보호구역 회피</option>
+      </select>
+    </div>
+    <div class="col-md-6">
+      <label class="form-label">교통정보</label>
+      <select id="trafficInfo" class="form-select">
+        <option value="N">미포함</option>
+        <option value="Y">포함</option>
+      </select>
+    </div>
+  </div>
+  <!-- ▲ 여기를 추가하세요 ▲ -->
+
   <div class="mb-3">
+    <!-- 기존 drawRoute 호출 -->
     <button class="btn btn-primary" onclick="drawRoute()">경로 보기</button>
   </div>
 
-  <p id="info"></p>
+
+  <p id="route_info"></p>
   <div id="map" style="width:100%; height:500px;"></div>
 
   <script src="https://apis.openapi.sk.com/tmap/jsv2?version=1&appKey={{ tmap_key }}"></script>
+  <script>
+    const APPKEY = "{{tmap_key}}";
+  </script>
   <script src="{{ url_for('static', filename='main.js') }}"></script>
 </body>
 
