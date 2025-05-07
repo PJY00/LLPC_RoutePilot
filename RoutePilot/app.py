@@ -196,6 +196,63 @@ def fulladdr_geocode():
     except requests.exceptions.RequestException as e:
         return jsonify({"error": str(e)}), 500
 
+@app.route("/route", methods=["POST"])
+def route():
+    data = request.get_json()
+    # 1) 요청 파라미터 검증
+    start = data.get("start")
+    end   = data.get("end")
+    if not start or not end:
+        return jsonify({"error": "start/end 파라미터가 필요합니다."}), 400
+
+    # 2) Tmap 경로탐색 API 호출
+    url = "https://apis.openapi.sk.com/tmap/routes"
+    params = {
+        "version":     "1",
+        "format":      "json",
+        "appKey":      TMAP_KEY,
+        # 클라이언트에서 넘어온 좌표
+        "startX":      start["lon"],
+        "startY":      start["lat"],
+        "endX":        end["lon"],
+        "endY":        end["lat"],
+        # 좌표 타입을 모두 WGS84GEO로 → 서버에서 별도 변환 불필요
+        "reqCoordType":"WGS84GEO",
+        "resCoordType":"WGS84GEO",
+        # 필요에 따라 클라이언트에서 searchOption, trafficInfo 전달 가능
+        "searchOption": data.get("searchOption", "0"),
+        "trafficInfo":  data.get("trafficInfo", "N")
+    }
+    try:
+        resp = requests.get(url, params=params)
+        resp.raise_for_status()
+        j = resp.json()
+    except Exception as e:
+        return jsonify({"error": "Tmap 경로 API 호출 실패", "detail": str(e)}), 500
+
+    feats = j.get("features", [])
+    if not feats:
+        return jsonify({"error": "경로 데이터를 찾을 수 없습니다."}), 404
+
+    # 3) LineString 좌표 추출 (lat, lon 순서로)
+    coords = []
+    for seg in feats:
+        geom = seg.get("geometry", {})
+        if geom.get("type") == "LineString":
+            for x, y in geom.get("coordinates", []):
+                coords.append({"lat": y, "lon": x})
+
+    # 4) 요약 정보 꺼내기
+    prop0 = feats[0]["properties"]
+    distance = prop0.get("totalDistance", 0)         # 미터
+    time_min = round(prop0.get("totalTime", 0) / 60)  # 분 단위로 반올림
+
+    return jsonify({
+        "route":    coords,
+        "distance": distance,
+        "time":     time_min
+    })
+
 @app.route('/about')
 def about():
     return render_template("about.html")
