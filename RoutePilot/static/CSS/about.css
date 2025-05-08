@@ -5,14 +5,14 @@ body {
   color: #333;
 }
 
-.navbar {
+/* .navbar {
   background-color: #002c5f;
   color: white;
   display: flex;
   justify-content: space-between;
   align-items: center;
   padding: 1rem 2rem;
-}
+} */
 
 .logo {
   font-size: 1.5rem;
