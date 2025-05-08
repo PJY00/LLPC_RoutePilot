@@ -1,72 +1,122 @@
 <!DOCTYPE html>
 <html lang="ko">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>RoutePilot | 팀 소개</title>
-  <link rel="stylesheet" href="../static/static.css/about.css">
-</head>
-<body>
-  <header>
-    <nav class="navbar">
-      <div class="logo">RoutePilot</div>
-      <ul class="nav-links">
-        <li><a href="index.html">홈</a></li>
-        <li><a href="index.html#features">서비스 소개</a></li>
-        <li><a href="about.html">팀 소개</a></li>
-        <li><a href="index.html#contact">문의</a></li>
-      </ul>
-    </nav>
-  </header>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>RoutePilot | 팀 소개</title>
+    <link rel="stylesheet" href="../static/static.css/about.css" />
+  </head>
 
-  <section class="about">
-    <h2>👨‍💻 팀원</h2>
-    <div class="team-container">
-      <div class="team-card card">
-        <h3>박지영</h3>
-        <p><a href="https://github.com/PJY00" target="_blank">GitHub</a></p>
-      </div>
-      <div class="team-card card">
-        <h3>최희진</h3>
-        <p><a href="https://github.com/HJ1263532" target="_blank">GitHub</a></p>
-      </div>
-      <div class="team-card card">
-        <h3>이진</h3>
-        <p><a href="https://github.com/Gin-Lee24" target="_blank">GitHub</a></p>
-      </div>
-      <div class="team-card card">
-        <h3>이은지</h3>
-        <p><a href="https://github.com/unne-source" target="_blank">GitHub</a></p>
-      </div>
-    </div>
+  <body>
+    {% include "nav.html" %}
+    <header>
+      <nav class="navbar">
+        <div class="logo">RoutePilot</div>
+        <ul class="nav-links">
+          <li><a href="index.html">홈</a></li>
+          <li><a href="index.html#features">서비스 소개</a></li>
+          <li><a href="about.html">팀 소개</a></li>
+          <li><a href="index.html#contact">문의</a></li>
+        </ul>
+      </nav>
+    </header>
 
-    <div class="card">
-      <h2>🛠 사용 언어</h2>
-      <ul>
-        <li><img src="../static/static.image/HTML5_Logo_512.png" class="lang-icon" alt="HTML"> HTML</li>
-        <li><img src="../static/static.image/Official_CSS_Logo.svg.png" class="lang-icon" alt="CSS"> CSS</li>
-        <li><img src="../static/static.image/JavaScript-logo.png" class="lang-icon" alt="JavaScript"> JavaScript</li>
-        <li><img src="../static/static.image/python-logo-only.png" class="lang-icon" alt="Python"> Python (Flask)</li>
-      </ul>
-    </div>
+    <section class="about">
+      <h2>👨‍💻 팀원</h2>
+      <div class="team-container">
+        <div class="team-card card">
+          <h3>박지영</h3>
+          <p><a href="https://github.com/PJY00" target="_blank">GitHub</a></p>
+        </div>
+        <div class="team-card card">
+          <h3>최희진</h3>
+          <p>
+            <a href="https://github.com/HJ1263532" target="_blank">GitHub</a>
+          </p>
+        </div>
+        <div class="team-card card">
+          <h3>이진</h3>
+          <p>
+            <a href="https://github.com/Gin-Lee24" target="_blank">GitHub</a>
+          </p>
+        </div>
+        <div class="team-card card">
+          <h3>이은지</h3>
+          <p>
+            <a href="https://github.com/unne-source" target="_blank">GitHub</a>
+          </p>
+        </div>
+      </div>
 
-    <div class="card">
-      <h2>🔗 사용 API</h2>
-      <ul>
-        <li>
-          <img src="../static/static.image/tmap-logo.png" class="api-icon" alt="Tmap">
-          <a href="https://developers.sktelecom.com/" target="_blank">Tmap API</a>
-        </li>
-        <li>
-          <img src="../static/static.image/kma-logo.png" class="api-icon" alt="기상청">
-          <a href="http://apis.data.go.kr/1360000/VilageFcstInfoService_2.0" target="_blank">기상청 API</a>
-        </li>
-      </ul>
-    </div>
-  </section>
+      <div class="card">
+        <h2>🛠 사용 언어</h2>
+        <ul>
+          <li>
+            <img
+              src="../static/static.image/HTML5_Logo_512.png"
+              class="lang-icon"
+              alt="HTML"
+            />
+            HTML
+          </li>
+          <li>
+            <img
+              src="../static/static.image/Official_CSS_Logo.svg.png"
+              class="lang-icon"
+              alt="CSS"
+            />
+            CSS
+          </li>
+          <li>
+            <img
+              src="../static/static.image/JavaScript-logo.png"
+              class="lang-icon"
+              alt="JavaScript"
+            />
+            JavaScript
+          </li>
+          <li>
+            <img
+              src="../static/static.image/python-logo-only.png"
+              class="lang-icon"
+              alt="Python"
+            />
+            Python (Flask)
+          </li>
+        </ul>
+      </div>
 
-  <footer>
-    <p>&copy; 2025 RoutePilot Team. All rights reserved.</p>
-  </footer>
-</body>
+      <div class="card">
+        <h2>🔗 사용 API</h2>
+        <ul>
+          <li>
+            <img
+              src="../static/static.image/tmap-logo.png"
+              class="api-icon"
+              alt="Tmap"
+            />
+            <a href="https://developers.sktelecom.com/" target="_blank"
+              >Tmap API</a
+            >
+          </li>
+          <li>
+            <img
+              src="../static/static.image/kma-logo.png"
+              class="api-icon"
+              alt="기상청"
+            />
+            <a
+              href="http://apis.data.go.kr/1360000/VilageFcstInfoService_2.0"
+              target="_blank"
+              >기상청 API</a
+            >
+          </li>
+        </ul>
+      </div>
+    </section>
+
+    <footer>
+      <p>&copy; 2025 RoutePilot Team. All rights reserved.</p>
+    </footer>
+  </body>
 </html>
