@@ -77,7 +77,7 @@ function fetchRouteRisk(startX, startY, endX, endY, option, trafficInfo) {
 function drawRecommendedRoute(startX, startY, endX, endY, trafficInfo) {
     // 0,1,2 옵션 전부 평가
     Promise.all(
-        ["0", "1", "2"].map(opt =>
+        ["0", "2"].map(opt =>
             fetchRouteRisk(startX, startY, endX, endY, opt, trafficInfo)
         )
     ).then(results => {
