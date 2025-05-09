@@ -76,13 +76,16 @@ def weather():
             return jsonify({"error": "위치 정보가 없습니다."}), 400
 
         lat, lon = data["lat"], data["lon"]
+        print(f">>> 받은 위도: {lat}, 경도: {lon}")
+
         x, y = latlon_to_grid(lat, lon)
+        print(f">>> 변환된 격자 좌표: x={x}, y={y}")
 
         base_date, base_time_str = get_latest_base_time()
+        print(f">>> 기준 날짜(base_date): {base_date}, 기준 시간(base_time): {base_time_str}")
 
-        url = "http://apis.data.go.kr/1360000/VilageFcstInfoService_2.0/getVilageFcst"
+        url = f"http://apis.data.go.kr/1360000/VilageFcstInfoService_2.0/getVilageFcst?serviceKey={KMA_KEY}"
         params = {
-            "serviceKey": KMA_KEY,
             "numOfRows": "10000",
             "pageNo": "1",
             "dataType": "JSON",
@@ -93,11 +96,20 @@ def weather():
         }
 
         res = requests.get(url, params=params)
+        print(">>> 기상청 API 요청 URL:", res.url)
+        print(">>> 응답 상태 코드:", res.status_code)
+        print(">>> 응답 본문:", res.text)
+
         if res.status_code != 200:
+            print(">>> 기상청 API 호출 실패:", res.text)
             return jsonify({"error": "기상청 API 호출 실패"}), 500
 
         json_data = res.json()
         items = json_data.get("response", {}).get("body", {}).get("items", {}).get("item", [])
+        print(f">>> 받은 날씨 데이터 개수: {len(items)}개")
+
+        if not items:
+            return jsonify({"error": "기상 데이터가 없습니다."})
 
         target_items = {"POP": None, "PCP": None, "SNO": None}
         min_diff = {k: float("inf") for k in target_items}
@@ -113,17 +125,141 @@ def weather():
                     if diff < min_diff[category]:
                         min_diff[category] = diff
                         target_items[category] = item["fcstValue"]
-                except Exception:
-                    pass
+                except Exception as parse_error:
+                    print(">>> 날짜 파싱 에러:", parse_error)
 
-        return jsonify({
+        result = {
             "pop": target_items["POP"],
             "pcp": target_items["PCP"],
             "sno": target_items["SNO"]
-        })
+        }
+        print(">>> 최종 날씨 응답 데이터:", result)
+        return jsonify(result)
 
     except Exception as e:
+        print(">>> 서버 에러 발생:", e)
         return jsonify({"error": "서버 에러", "message": str(e)}), 500
+
+@app.route("/reverse-geocode", methods=["POST"])
+def reverse_geocode():
+    data = request.get_json()
+    lon = data.get("lon")
+    lat = data.get("lat")
+    if lon is None or lat is None:
+        return jsonify({"error": "lon/lat 파라미터가 필요합니다."}), 400
+
+    url = "https://apis.openapi.sk.com/tmap/geo/reversegeocoding"
+    params = {
+        "version": 1,
+        "format": "json",
+        "lon": lon,
+        "lat": lat,
+        "coordType": "WGS84GEO",
+        "addressType": "A10"
+    }
+    headers = {"appKey": TMAP_KEY}
+
+    res = requests.get(url, headers=headers, params=params)
+    if res.status_code != 200:
+        return jsonify({"error": "TMap API 호출 실패"}), res.status_code
+
+    data = res.json()
+    # 주소 정보만 리턴 (불필요한 데이터 제외)
+    info = data.get("addressInfo", {})
+    return jsonify({
+        "city_do":    info.get("city_do"),
+        "gu_gun":     info.get("gu_gun"),
+        "eup_myun":   info.get("eup_myun"),
+        "roadName":   info.get("roadName"),
+        "buildingIndex": info.get("buildingIndex")
+    })
+
+@app.route("/fulladdr-geocode", methods=["POST"])
+def fulladdr_geocode():
+    fullAddr = request.json.get("fullAddr")
+    if not fullAddr:
+        return jsonify({"error": "Missing address"}), 400
+
+    url = "https://apis.openapi.sk.com/tmap/geo/fullAddrGeo"
+    headers = { "appKey": TMAP_KEY }
+    params = {
+        "version": 1,
+        "format": "json",
+        "coordType": "WGS84GEO",
+        "fullAddr": fullAddr
+    }
+
+    try:
+        res = requests.get(url, headers=headers, params=params)
+        res.raise_for_status()
+        return jsonify(res.json())
+    except requests.exceptions.RequestException as e:
+        return jsonify({"error": str(e)}), 500
+
+@app.route("/route", methods=["POST"])
+def route():
+    data = request.get_json()
+    # 1) 요청 파라미터 검증
+    start = data.get("start")
+    end   = data.get("end")
+    if not start or not end:
+        return jsonify({"error": "start/end 파라미터가 필요합니다."}), 400
+
+    # 2) Tmap 경로탐색 API 호출
+    url = "https://apis.openapi.sk.com/tmap/routes"
+    params = {
+        "version":     "1",
+        "format":      "json",
+        "appKey":      TMAP_KEY,
+        # 클라이언트에서 넘어온 좌표
+        "startX":      start["lon"],
+        "startY":      start["lat"],
+        "endX":        end["lon"],
+        "endY":        end["lat"],
+        # 좌표 타입을 모두 WGS84GEO로 → 서버에서 별도 변환 불필요
+        "reqCoordType":"WGS84GEO",
+        "resCoordType":"WGS84GEO",
+        # 필요에 따라 클라이언트에서 searchOption, trafficInfo 전달 가능
+        "searchOption": data.get("searchOption", "0"),
+        "trafficInfo":  data.get("trafficInfo", "N")
+    }
+    try:
+        resp = requests.get(url, params=params)
+        resp.raise_for_status()
+        j = resp.json()
+    except Exception as e:
+        return jsonify({"error": "Tmap 경로 API 호출 실패", "detail": str(e)}), 500
+
+    feats = j.get("features", [])
+    if not feats:
+        return jsonify({"error": "경로 데이터를 찾을 수 없습니다."}), 404
+
+    # 3) LineString 좌표 추출 (lat, lon 순서로)
+    coords = []
+    for seg in feats:
+        geom = seg.get("geometry", {})
+        if geom.get("type") == "LineString":
+            for x, y in geom.get("coordinates", []):
+                coords.append({"lat": y, "lon": x})
+
+    # 4) 요약 정보 꺼내기
+    prop0 = feats[0]["properties"]
+    distance = prop0.get("totalDistance", 0)         # 미터
+    time_min = round(prop0.get("totalTime", 0) / 60)  # 분 단위로 반올림
+
+    return jsonify({
+        "route":    coords,
+        "distance": distance,
+        "time":     time_min
+    })
+
+@app.route('/about')
+def about():
+    return render_template("about.html")
+
+@app.route('/help')
+def help():
+    return render_template("about.html")
 
 if __name__ == "__main__":
     app.run(debug=True)
