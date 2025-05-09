@@ -1,39 +1,74 @@
-body {
-  margin: 0;
-  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-  background-color: #f4f6f8;
-  color: #333;
-}
-
-/* .navbar {
+/* 네비게이션 바 */
+.navbar {
   background-color: #002c5f;
   color: white;
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 1rem 2rem;
-} */
+  padding: 0.8rem 2rem;
+  position: sticky;
+  top: 0;
+  z-index: 1000;
+}
 
-.logo {
+/* 타이틀 텍스트 */
+.site-title {
   font-size: 1.5rem;
   font-weight: bold;
-}
-
-.nav-links {
-  list-style: none;
-  display: flex;
-  gap: 1.5rem;
-}
-
-.nav-links a {
-  text-decoration: none;
   color: white;
-  font-weight: 500;
-  transition: color 0.3s;
+  text-decoration: none;
 }
 
-.nav-links a:hover {
-  color: #ffd700;
+/* 네비게이션 링크 */
+.navbar-right a {
+  color: white;
+  text-decoration: none;
+  margin-left: 1.5rem;
+  font-weight: 500;
+  font-size: 1.1rem;
+}
+
+.navbar-right a:hover {
+  text-decoration: underline;
+}
+
+/* LLPC 로고 이미지 */
+.nav-logo {
+  height: 2.6rem;  /* 2배 키운 로고 */
+  vertical-align: middle;
+}
+
+/* 슬로건 영역 중앙 정렬 */
+.slogan-section {
+  display: flex;
+  justify-content: center;
+  margin: 2rem 0;
+}
+
+/* 슬로건 배경 카드 */
+.slogan-card {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  background-color: white;
+  padding: 1rem 2rem;
+  border-radius: 12px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+/* 슬로건 텍스트 */
+.slogan-text {
+  font-size: 1.3rem;
+  color: #555;
+  margin: 0;
+}
+
+/* 기본 스타일 */
+body {
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  background-color: #f4f6f8;
+  margin: 0;
+  padding: 0;
 }
 
 .about {
@@ -63,6 +98,8 @@ body {
 
 .card ul li {
   margin: 0.5rem 0;
+  display: flex;
+  align-items: center;
 }
 
 .card ul li a {
@@ -82,7 +119,6 @@ footer {
   font-size: 0.9rem;
 }
 
-/* 팀원 카드 */
 .team-container {
   display: flex;
   flex-wrap: wrap;
@@ -92,7 +128,7 @@ footer {
 
 .team-card {
   width: 150px;
-  background-color: white; /* 배경 흰색 고정 */
+  background-color: white;
   border-radius: 12px;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
   padding: 1.5rem;
@@ -100,24 +136,21 @@ footer {
   transition: transform 0.3s ease, box-shadow 0.3s ease;
 }
 
-/* Hover 애니메이션 */
 .team-card:hover {
-  transform: translateY(-8px); /* 위로 살짝 떠오름 */
-  box-shadow: 0 12px 24px rgba(0, 0, 0, 0.15); /* 그림자 강조 */
+  transform: translateY(-8px);
+  box-shadow: 0 12px 24px rgba(0, 0, 0, 0.15);
 }
 
-
-/* 언어 로고 아이콘 */
-.lang-icon {
-  width: 20px;
-  height: 20px;
-  margin-right: 8px;
-  vertical-align: middle;
-}
-
+.lang-icon,
 .api-icon {
-  width: 24px;
-  height: 24px;
-  margin-right: 8px;
+  width: 28px;
+  height: 28px;
+  margin-right: 10px;
+  object-fit: contain;
   vertical-align: middle;
+}
+
+.text-secondary {
+  font-size: 1.2rem;
+  color: #555;
 }
