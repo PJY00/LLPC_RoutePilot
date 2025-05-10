@@ -9,9 +9,32 @@ load_dotenv(find_dotenv())
 
 KMA_KEY = os.getenv("KMA_API_KEY")
 TMAP_KEY = os.getenv("TMAP_JS_KEY")
+KAKAO_REST_KEY = os.getenv("KAKAO_REST_KEY")
 print("✅ KMA_KEY:", KMA_KEY)
 print("✅ TMAP_KEY:", TMAP_KEY)
 
+def kakao_geocode(address):
+    url = "https://dapi.kakao.com/v2/local/search/address.json"
+    headers = {"Authorization": f"KakaoAK {KAKAO_REST_KEY}"}
+    params = {"query": address}
+    
+    res = requests.get(url, headers=headers, params=params)
+    if res.status_code != 200:
+        print(">>> 카카오 주소 변환 실패:", res.text)
+        return None
+
+    result = res.json()
+    documents = result.get("documents")
+    if not documents:
+        print(">>> 주소 검색 결과 없음")
+        return None
+
+    doc = documents[0]
+    return {
+        "lat": float(doc["y"]),
+        "lon": float(doc["x"]),
+        "address_name": doc["address_name"]
+    }
 
 # 위도, 경도를 격자(x, y)로 변환
 def latlon_to_grid(lat, lon):
