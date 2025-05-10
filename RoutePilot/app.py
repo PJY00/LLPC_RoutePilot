@@ -2,7 +2,7 @@ from flask import Flask, render_template, request, jsonify
 import os, requests
 from dotenv import load_dotenv, find_dotenv
 from datetime import datetime, timedelta
-import math
+import math,csv
 
 app = Flask(__name__)
 load_dotenv(find_dotenv())
@@ -35,6 +35,28 @@ def kakao_geocode(address):
         "lon": float(doc["x"]),
         "address_name": doc["address_name"]
     }
+
+def load_speed_data():
+    """
+    data/speed_data.csv 파일을 읽어 구간별 속도 및 좌표 정보를 로드합니다.
+    CSV 열: 노선명,시점부,종점부,구간길이,기점 방향 제한속도(kph),종점 방향 제한속도(kph),시점 위도,시점 경도,종점 위도,종점 경도
+    """
+    data = []
+    csv_path = os.path.join(os.path.dirname(__file__), 'data', 'speed_data.csv')
+    with open(csv_path, newline='', encoding='utf-8') as f:
+        reader = csv.DictReader(f)
+        for row in reader:
+            # 문자열을 적절히 변환
+            row['시점 위도'] = float(row['시점 위도'])
+            row['시점 경도'] = float(row['시점 경도'])
+            row['종점 위도'] = float(row['종점 위도'])
+            row['종점 경도'] = float(row['종점 경도'])
+            row['기점 방향 제한속도(kph)'] = float(row['기점 방향 제한속도(kph)'])
+            row['종점 방향 제한속도(kph)'] = float(row['종점 방향 제한속도(kph)'])
+            data.append(row)
+    return data
+
+speed_data = load_speed_data()
 
 # 위도, 경도를 격자(x, y)로 변환
 def latlon_to_grid(lat, lon):
