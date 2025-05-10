@@ -1,6 +1,5 @@
 # oss_basic
 
-### Used Language-Python3.13.2
 - [Project summary](#RoutePilot)
   - [Purpose](#purpose)
   - [Requirements](#requirements)
@@ -13,7 +12,7 @@
 ---
 
 ### Project summary
-* 프로젯트의 간단한 개요 소개개
+* 프로젯트의 간단한 개요 소개
 
 #### Purpose
 
@@ -21,13 +20,23 @@
 
 #### Requirements
 
-* requirements.txt 참고.
+* Python 3.13.2
+* Flask 3.1.0
+* flask-cors 5.0.1
+* Jinja2 3.1.6
+* Werkzeug 3.1.3
+* python-dotenv 1.1.0
+* requests 2.32.3
+* click 8.1.8
+* itsdangerous 2.2.0
+* MarkupSafe 3.0.2
+
 
 #### How to install
 
 ```sh
-git clone ...........
-cd da_design_server_학번
+git clone https://github.com/PJY00/LLPC_RoutePilot.git
+cd LLPC_RoutePilot
 pip3 install -r requirements.txt
 ```
 ---
@@ -46,10 +55,13 @@ TODO
 
 ### Contacts
 
-나의이메일
+박지영(팀장) - 
+최희진 - 
+이진 - 
+이은지 - 
 
 ---
 
 ### License
 
-Apache-2.0
+MIT License
