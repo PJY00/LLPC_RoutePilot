@@ -513,5 +513,33 @@ function setupAddressGeocode() {
         });
 }
 
+//현재 위치 10초마다 전달달
+function fetchSpeed() {
+    navigator.geolocation.getCurrentPosition(function (position) {
+        const lat = position.coords.latitude;
+        const lon = position.coords.longitude;
+
+        fetch(`/speed?lat=${lat}&lon=${lon}`)
+            .then(res => res.json())
+            .then(data => {
+                if (data.speed) {
+                    document.getElementById("speedDisplay").innerText =
+                        `현재 구간 제한속도: ${data.speed} km/h`;
+                } else if (data.message) {
+                    document.getElementById("speedDisplay").innerText = data.message;
+                }
+            }).catch(err => {
+                document.getElementById("speedDisplay").innerText = '오류: ' + err;
+            });
+    });
+}
+
+// 10초마다 갱신
+setInterval(fetchSpeed, 10000);
+
+// 페이지 로드 시 처음 실행
+fetchSpeed();
+
+
 // 페이지 로드 후 실행
 window.onload = initMapAndWeather;
