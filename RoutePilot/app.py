@@ -13,36 +13,13 @@ KAKAO_REST_KEY = os.getenv("KAKAO_REST_KEY")
 print("✅ KMA_KEY:", KMA_KEY)
 print("✅ TMAP_KEY:", TMAP_KEY)
 
-def kakao_geocode(address):
-    url = "https://dapi.kakao.com/v2/local/search/address.json"
-    headers = {"Authorization": f"KakaoAK {KAKAO_REST_KEY}"}
-    params = {"query": address}
-    
-    res = requests.get(url, headers=headers, params=params)
-    if res.status_code != 200:
-        print(">>> 카카오 주소 변환 실패:", res.text)
-        return None
-
-    result = res.json()
-    documents = result.get("documents")
-    if not documents:
-        print(">>> 주소 검색 결과 없음")
-        return None
-
-    doc = documents[0]
-    return {
-        "lat": float(doc["y"]),
-        "lon": float(doc["x"]),
-        "address_name": doc["address_name"]
-    }
-
 def load_speed_data():
     """
     data/speed_data.csv 파일을 읽어 구간별 속도 및 좌표 정보를 로드합니다.
     CSV 열: 노선명,시점부,종점부,구간길이,기점 방향 제한속도(kph),종점 방향 제한속도(kph),시점 위도,시점 경도,종점 위도,종점 경도
     """
     data = []
-    csv_path = os.path.join(os.path.dirname(__file__), 'data', 'speed_data.csv')
+    csv_path = os.path.join(os.path.dirname(__file__), 'data', 'speed.csv')
     with open(csv_path, newline='', encoding='utf-8') as f:
         reader = csv.DictReader(f)
         for row in reader:
@@ -57,6 +34,15 @@ def load_speed_data():
     return data
 
 speed_data = load_speed_data()
+
+def haversine(lat1, lon1, lat2, lon2):
+    """두 좌표 간 거리를 미터 단위로 계산합니다."""
+    R = 6371000  # 지구 반경 (m)
+    phi1, phi2 = math.radians(lat1), math.radians(lat2)
+    dphi = math.radians(lat2 - lat1)
+    dlambda = math.radians(lon2 - lon1)
+    a = math.sin(dphi/2)**2 + math.cos(phi1)*math.cos(phi2)*math.sin(dlambda/2)**2
+    return 2 * R * math.asin(math.sqrt(a))
 
 # 위도, 경도를 격자(x, y)로 변환
 def latlon_to_grid(lat, lon):
