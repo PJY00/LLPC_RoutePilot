@@ -51,6 +51,23 @@ def is_in_segment(lat, lon, row, tol=50):
     total = haversine(row['시점 위도'], row['시점 경도'], row['종점 위도'], row['종점 경도'])
     return abs((d1 + d2) - total) <= tol
 
+@app.route('/speed', methods=['GET'])
+def speed():
+    lat = request.args.get('lat', type=float)
+    lon = request.args.get('lon', type=float)
+    if lat is None or lon is None:
+        return jsonify({'error': 'lat와 lon 파라미터가 필요합니다.'}), 400
+
+    for row in speed_data:
+        if is_in_segment(lat, lon, row):
+            return jsonify({
+                '노선명': row['노선명'],
+                '시점부': row['시점부'],
+                '종점부': row['종점부'],
+                '속도': row['기점 방향 제한속도(kph)']
+            })
+    return jsonify({'message': '해당 위치의 제한속도 정보를 찾을 수 없습니다.'}), 404
+
 # 위도, 경도를 격자(x, y)로 변환
 def latlon_to_grid(lat, lon):
     RE = 6371.00877
