@@ -44,6 +44,13 @@ def haversine(lat1, lon1, lat2, lon2):
     a = math.sin(dphi/2)**2 + math.cos(phi1)*math.cos(phi2)*math.sin(dlambda/2)**2
     return 2 * R * math.asin(math.sqrt(a))
 
+def is_in_segment(lat, lon, row, tol=50):
+    """사용자 좌표(lat, lon)가 row에 정의된 구간 위에 있는지 판단 (tol: 오차 허용치 m)"""
+    d1 = haversine(lat, lon, row['시점 위도'], row['시점 경도'])
+    d2 = haversine(lat, lon, row['종점 위도'], row['종점 경도'])
+    total = haversine(row['시점 위도'], row['시점 경도'], row['종점 위도'], row['종점 경도'])
+    return abs((d1 + d2) - total) <= tol
+
 # 위도, 경도를 격자(x, y)로 변환
 def latlon_to_grid(lat, lon):
     RE = 6371.00877
