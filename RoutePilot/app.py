@@ -2,16 +2,71 @@ from flask import Flask, render_template, request, jsonify
 import os, requests
 from dotenv import load_dotenv, find_dotenv
 from datetime import datetime, timedelta
-import math
+import math,csv
 
 app = Flask(__name__)
 load_dotenv(find_dotenv())
 
 KMA_KEY = os.getenv("KMA_API_KEY")
 TMAP_KEY = os.getenv("TMAP_JS_KEY")
+KAKAO_REST_KEY = os.getenv("KAKAO_REST_KEY")
 print("✅ KMA_KEY:", KMA_KEY)
 print("✅ TMAP_KEY:", TMAP_KEY)
 
+def load_speed_data():
+    """
+    data/speed_data.csv 파일을 읽어 구간별 속도 및 좌표 정보를 로드합니다.
+    CSV 열: 노선명,시점부,종점부,구간길이,기점 방향 제한속도(kph),종점 방향 제한속도(kph),시점 위도,시점 경도,종점 위도,종점 경도
+    """
+    data = []
+    csv_path = os.path.join(os.path.dirname(__file__), 'data', 'speed.csv')
+    with open(csv_path, newline='', encoding='utf-8') as f:
+        reader = csv.DictReader(f)
+        for row in reader:
+            # 문자열을 적절히 변환
+            row['시점 위도'] = float(row['시점 위도'])
+            row['시점 경도'] = float(row['시점 경도'])
+            row['종점 위도'] = float(row['종점 위도'])
+            row['종점 경도'] = float(row['종점 경도'])
+            row['기점 방향 제한속도(kph)'] = float(row['기점 방향 제한속도(kph)'])
+            row['종점 방향 제한속도(kph)'] = float(row['종점 방향 제한속도(kph)'])
+            data.append(row)
+    return data
+
+speed_data = load_speed_data()
+
+def haversine(lat1, lon1, lat2, lon2):
+    """두 좌표 간 거리를 미터 단위로 계산합니다."""
+    R = 6371000  # 지구 반경 (m)
+    phi1, phi2 = math.radians(lat1), math.radians(lat2)
+    dphi = math.radians(lat2 - lat1)
+    dlambda = math.radians(lon2 - lon1)
+    a = math.sin(dphi/2)**2 + math.cos(phi1)*math.cos(phi2)*math.sin(dlambda/2)**2
+    return 2 * R * math.asin(math.sqrt(a))
+
+def is_in_segment(lat, lon, row, tol=50):
+    """사용자 좌표(lat, lon)가 row에 정의된 구간 위에 있는지 판단 (tol: 오차 허용치 m)"""
+    d1 = haversine(lat, lon, row['시점 위도'], row['시점 경도'])
+    d2 = haversine(lat, lon, row['종점 위도'], row['종점 경도'])
+    total = haversine(row['시점 위도'], row['시점 경도'], row['종점 위도'], row['종점 경도'])
+    return abs((d1 + d2) - total) <= tol
+
+@app.route('/speed', methods=['GET'])
+def speed():
+    lat = request.args.get('lat', type=float)
+    lon = request.args.get('lon', type=float)
+    if lat is None or lon is None:
+        return jsonify({'error': 'lat와 lon 파라미터가 필요합니다.'}), 400
+
+    for row in speed_data:
+        if is_in_segment(lat, lon, row):
+            return jsonify({
+                '노선명': row['노선명'],
+                '시점부': row['시점부'],
+                '종점부': row['종점부'],
+                '속도': row['기점 방향 제한속도(kph)']
+            })
+    return jsonify({'message': '해당 위치의 제한속도 정보를 찾을 수 없습니다.'}), 404
 
 # 위도, 경도를 격자(x, y)로 변환
 def latlon_to_grid(lat, lon):
