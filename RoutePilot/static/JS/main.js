@@ -536,13 +536,20 @@ function fetchSpeed() {
         fetch(`/speed?lat=${lat}&lon=${lon}`)
             .then(res => res.json())
             .then(data => {
-                if (data.speed) {
-                    document.getElementById("speedDisplay").innerText =
-                        `현재 구간 제한속도: ${data.speed} km/h`;
+                const display = document.getElementById("speedDisplay");
+
+                if (data.speed_start && data.speed_end) {
+                    display.innerText =
+                        `현재 도로: ${data.road}\n` +
+                        `시점: ${data.start}, 종점: ${data.end}\n` +
+                        `제한속도 (기점 방향): ${data.speed_start} km/h, (종점 방향): ${data.speed_end} km/h`;
                 } else if (data.message) {
-                    document.getElementById("speedDisplay").innerText = data.message;
+                    display.innerText = data.message;
+                } else {
+                    display.innerText = "제한속도 정보를 찾을 수 없습니다.";
                 }
-            }).catch(err => {
+            })
+            .catch(err => {
                 document.getElementById("speedDisplay").innerText = '오류: ' + err;
             });
     });
