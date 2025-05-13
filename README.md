@@ -32,3 +32,4 @@ REF Delete the useless method
 CHORE Update the gitignore  
 
 ---
+- Contributor email fix for `unne-source`
