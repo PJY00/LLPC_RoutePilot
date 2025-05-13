@@ -103,14 +103,9 @@ function drawRecommendedRoute(startX, startY, endX, endY, trafficInfo) {
                 const trafArr = (trafficInfo === "Y") ? seg.geometry.traffic : [];
                 drawLine(pts, trafArr);
             } else {
-                const url = seg.properties.pointType === "S"
-                    ? "https://tmapapi.sktelecom.com/upload/tmap/marker/pin_r_m_s.png"
-                    : seg.properties.pointType === "E"
-                        ? "https://tmapapi.sktelecom.com/upload/tmap/marker/pin_r_m_e.png"
-                        : "http://topopen.tmap.co.kr/imgs/point.png";
                 const p = new Tmapv2.Point(seg.geometry.coordinates[0], seg.geometry.coordinates[1]);
                 const cp = new Tmapv2.Projection.convertEPSG3857ToWGS84GEO(p);
-                addPOIMarker(cp._lat, cp._lng, url, seg.properties.pointType);
+                addPOIMarker(cp._lat, cp._lng, "", seg.properties.pointType);
                 bounds.extend(cp);                                  // 마커 위치 추가
             }
         });
@@ -211,34 +206,7 @@ function initMapAndWeather() {
             setInterval(() => updateWeather(lat, lon), 10 * 60 * 1000);
 
             // 지도 클릭 이벤트: 마커 찍고 경로 요청
-            map.addListener("click", function (evt) {
-                const lat = evt.latLng._lat;
-                const lon = evt.latLng._lng;
-
-                if (!startMarker) {
-                    startMarker = new Tmapv2.Marker({
-                        position: new Tmapv2.LatLng(lat, lon),
-                        icon: "https://tmapapi.sktelecom.com/upload/tmap/marker/pin_r_m_s.png",
-                        map: map
-                    });
-                } else if (!endMarker) {
-                    endMarker = new Tmapv2.Marker({
-                        position: new Tmapv2.LatLng(lat, lon),
-                        icon: "https://tmapapi.sktelecom.com/upload/tmap/marker/pin_r_m_e.png",
-                        map: map
-                    });
-
-                    requestRoute(startMarker.getPosition(), endMarker.getPosition());
-                } else {
-                    startMarker.setMap(null);
-                    endMarker.setMap(null);
-                    startMarker = null;
-                    endMarker = null;
-                    if (routeLayer) {
-                        routeLayer.setMap(null);
-                    }
-                }
-            });
+            //이 함수 뭔지 알아보기
 
         }, (error) => {
             console.error("위치 정보 가져오기 실패:", error);
@@ -366,16 +334,9 @@ function searchAndDrawRoute(startX, startY, endX, endY, searchOption, trafficInf
                     drawLine(pts, trafficArr);
 
                 } else {
-                    // 마커 그리기
-                    const prop = seg.properties;
-                    const url = prop.pointType === "P"
-                        ? "http://topopen.tmap.co.kr/imgs/point.png"
-                        : prop.pointType === "S"
-                            ? "https://tmapapi.sktelecom.com/upload/tmap/marker/pin_r_m_s.png"
-                            : "https://tmapapi.sktelecom.com/upload/tmap/marker/pin_r_m_e.png";
                     const p = new Tmapv2.Point(seg.geometry.coordinates[0], seg.geometry.coordinates[1]);
                     const cp = new Tmapv2.Projection.convertEPSG3857ToWGS84GEO(p);
-                    addPOIMarker(cp._lat, cp._lng, url, prop.pointType);
+                    addPOIMarker(cp._lat, cp._lng, "", prop.pointType);
 
                     // ✅ 마커 좌표도 bounds에 포함
                     bounds.extend(cp);
