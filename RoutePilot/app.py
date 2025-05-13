@@ -151,8 +151,9 @@ def weather():
         base_date, base_time_str = get_latest_base_time()
         print(f">>> 기준 날짜(base_date): {base_date}, 기준 시간(base_time): {base_time_str}")
 
-        url = f"http://apis.data.go.kr/1360000/VilageFcstInfoService_2.0/getVilageFcst?serviceKey={KMA_KEY}"
+        url = f"http://apis.data.go.kr/1360000/VilageFcstInfoService_2.0/getVilageFcst"
         params = {
+            "serviceKey":KMA_KEY,
             "numOfRows": "10000",
             "pageNo": "1",
             "dataType": "JSON",
@@ -200,7 +201,7 @@ def weather():
             "pcp": target_items["PCP"],
             "sno": target_items["SNO"]
         }
-        print(">>> 최종 날씨 응답 데이터:", result)
+        #print(">>> 최종 날씨 응답 데이터:", result)
         return jsonify(result)
 
     except Exception as e:
