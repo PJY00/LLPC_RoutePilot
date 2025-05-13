@@ -75,7 +75,6 @@ function fetchRouteRisk(startX, startY, endX, endY, option, trafficInfo) {
 }
 
 function drawRecommendedRoute(startX, startY, endX, endY, trafficInfo) {
-    // 0,1,2 옵션 전부 평가
     Promise.all(
         ["0", "2"].map(opt =>
             fetchRouteRisk(startX, startY, endX, endY, opt, trafficInfo)
@@ -83,21 +82,24 @@ function drawRecommendedRoute(startX, startY, endX, endY, trafficInfo) {
     ).then(results => {
         // 1) 최소 리스크 찾기
         const minRisk = Math.min(...results.map(r => r.risk));
-        // 2) 그 중에 최소시간 경로로 다시 추려내기
         const candidates = results.filter(r => r.risk === minRisk);
         candidates.sort((a, b) => a.totalTime - b.totalTime);
         const best = candidates[0];
 
-        console.log(`추천 경로(0번): 옵션 ${best.option}, 리스크 ${best.risk.toFixed(1)}, 시간 ${(best.totalTime / 60).toFixed(0)}분`);
-
-        // 지도에 표시
+        // 초기화
         resetRouteData();
+
+        // ——— 여기서 bounds 생성 ———
+        const bounds = new Tmapv2.LatLngBounds();
+
+        // 2) 경로 그리기 & bounds에 추가
         best.features.forEach(seg => {
             if (seg.geometry.type === "LineString") {
                 const pts = seg.geometry.coordinates.map(c => {
                     const p = new Tmapv2.Point(c[0], c[1]);
                     return new Tmapv2.Projection.convertEPSG3857ToWGS84GEO(p);
                 });
+                pts.forEach(pt => bounds.extend(pt));               // 경로 포인트 추가
                 const trafArr = (trafficInfo === "Y") ? seg.geometry.traffic : [];
                 drawLine(pts, trafArr);
             } else {
@@ -109,8 +111,13 @@ function drawRecommendedRoute(startX, startY, endX, endY, trafficInfo) {
                 const p = new Tmapv2.Point(seg.geometry.coordinates[0], seg.geometry.coordinates[1]);
                 const cp = new Tmapv2.Projection.convertEPSG3857ToWGS84GEO(p);
                 addPOIMarker(cp._lat, cp._lng, url, seg.properties.pointType);
+                bounds.extend(cp);                                  // 마커 위치 추가
             }
         });
+
+        // ——— 마지막에 한 번만 전체 화면 맞춤 ———
+        map.fitBounds(bounds);
+
         // 요약정보
         const p0 = best.features[0].properties;
         document.getElementById("route_info").innerText =
@@ -121,9 +128,25 @@ function drawRecommendedRoute(startX, startY, endX, endY, trafficInfo) {
             alert("추천 경로를 불러오는 중 오류가 발생했습니다.");
         });
 }
+
 function drawFastestRoute(startX, startY, endX, endY, trafficInfo) {
     // 그냥 Tmap의 '1번(최소시간)' 옵션 호출
     searchAndDrawRoute(startX, startY, endX, endY, "1", trafficInfo);
+}
+
+function fitMapToRoute() {
+    const bounds = new Tmapv2.LatLngBounds();
+    // 1) 폴리라인 점들
+    routePolylines.forEach(pl => {
+        pl.getPath().forEach(pt => {
+            bounds.extend(pt);
+        });
+    });
+    // 2) 마커들
+    if (startMarker) bounds.extend(startMarker.getPosition());
+    if (endMarker) bounds.extend(endMarker.getPosition());
+    // 3) 실제 적용
+    map.fitBounds(bounds);
 }
 
 function drawRoute() {
@@ -361,6 +384,7 @@ function searchAndDrawRoute(startX, startY, endX, endY, searchOption, trafficInf
 
             // ✅ 경로 전체가 보이도록 지도 확대/이동
             map.fitBounds(bounds);
+            fitMapToRoute();
 
             // 요약 정보 출력
             const prop0 = feat[0].properties;
