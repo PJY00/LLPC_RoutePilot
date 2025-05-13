@@ -138,7 +138,6 @@ function drawRoute() {
     const bounds = new Tmapv2.LatLngBounds();
     bounds.extend(s);
     bounds.extend(e);
-    map.fitBounds(bounds);
 
     if (opt === "0") {
         // 0번 → 날씨 기준 추천 경로
@@ -285,6 +284,7 @@ function resetRouteData() {
 // (2) 경로 탐색 → 그리기
 function searchAndDrawRoute(startX, startY, endX, endY, searchOption, trafficInfo) {
     resetRouteData();
+
     $.ajax({
         type: "POST",
         url: `https://apis.openapi.sk.com/tmap/routes?version=1&format=json&appKey=${APPKEY}`,
@@ -296,28 +296,30 @@ function searchAndDrawRoute(startX, startY, endX, endY, searchOption, trafficInf
         },
         success: function (res) {
             const feat = res.features;
-            // 1km마다 샘플링하기 위한 변수
-            let totalDist = 0;    // 누적 거리(m)
-            let lastKmMark = 0;   // 직전 샘플 km 지점
+            let totalDist = 0;
+            let lastKmMark = 0;
+
+            const bounds = new Tmapv2.LatLngBounds();  // ✅ 전체 경로 영역
 
             feat.forEach(seg => {
                 if (seg.geometry.type === "LineString") {
-                    // EPSG3857 → WGS84 좌표 변환
+                    // EPSG3857 → WGS84 변환
                     const pts = seg.geometry.coordinates.map(c => {
                         const p = new Tmapv2.Point(c[0], c[1]);
                         return new Tmapv2.Projection.convertEPSG3857ToWGS84GEO(p);
                     });
 
-                    // 각 구간 사이 거리 누적하면서 1km마다 날씨 요청
+                    // ✅ 경로 포인트 모두 bounds에 추가
+                    pts.forEach(pt => bounds.extend(pt));
+
+                    // 1km마다 날씨 요청
                     for (let i = 1; i < pts.length; i++) {
                         const p0 = pts[i - 1], p1 = pts[i];
                         const d = calculateDistance(p0._lat, p0._lng, p1._lat, p1._lng);
                         totalDist += d;
 
-                        // 새로 1km 지점에 도달했으면
                         if (Math.floor(totalDist / 1000) > lastKmMark) {
                             lastKmMark++;
-                            // 격자 반올림: 소수점 둘째 자리까지
                             const roundedLat = Math.round(p1._lat * 100) / 100;
                             const roundedLon = Math.round(p1._lng * 100) / 100;
 
@@ -336,12 +338,12 @@ function searchAndDrawRoute(startX, startY, endX, endY, searchOption, trafficInf
                         }
                     }
 
-                    // 원래 교통정보 반영해서 그리기
+                    // 경로 선 그리기
                     const trafficArr = (trafficInfo === "Y") ? seg.geometry.traffic : [];
                     drawLine(pts, trafficArr);
 
                 } else {
-                    // 기존 S/E/P 마커 그리기
+                    // 마커 그리기
                     const prop = seg.properties;
                     const url = prop.pointType === "P"
                         ? "http://topopen.tmap.co.kr/imgs/point.png"
@@ -351,10 +353,16 @@ function searchAndDrawRoute(startX, startY, endX, endY, searchOption, trafficInf
                     const p = new Tmapv2.Point(seg.geometry.coordinates[0], seg.geometry.coordinates[1]);
                     const cp = new Tmapv2.Projection.convertEPSG3857ToWGS84GEO(p);
                     addPOIMarker(cp._lat, cp._lng, url, prop.pointType);
+
+                    // ✅ 마커 좌표도 bounds에 포함
+                    bounds.extend(cp);
                 }
             });
 
-            // 요약정보 업데이트
+            // ✅ 경로 전체가 보이도록 지도 확대/이동
+            map.fitBounds(bounds);
+
+            // 요약 정보 출력
             const prop0 = feat[0].properties;
             document.getElementById("route_info").innerText =
                 `🛣 거리: ${(prop0.totalDistance / 1000).toFixed(1)}km | 🕒 ${(prop0.totalTime / 60).toFixed(0)}분`;
