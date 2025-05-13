@@ -24,10 +24,10 @@ def load_speed_data():
         reader = csv.DictReader(f)
         for row in reader:
             # 문자열을 적절히 변환
-            row['시점 위도'] = float(row['시점 위도'])
-            row['시점 경도'] = float(row['시점 경도'])
-            row['종점 위도'] = float(row['종점 위도'])
-            row['종점 경도'] = float(row['종점 경도'])
+            row['시점위도'] = float(row['시점위도'])
+            row['시점경도'] = float(row['시점경도'])
+            row['종점위도'] = float(row['종점위도'])
+            row['종점경도'] = float(row['종점경도'])
             row['기점 방향 제한속도(kph)'] = float(row['기점 방향 제한속도(kph)'])
             row['종점 방향 제한속도(kph)'] = float(row['종점 방향 제한속도(kph)'])
             data.append(row)
@@ -46,11 +46,12 @@ def haversine(lat1, lon1, lat2, lon2):
 
 def is_in_segment(lat, lon, row, tol=50):
     """사용자 좌표(lat, lon)가 row에 정의된 구간 위에 있는지 판단 (tol: 오차 허용치 m)"""
-    d1 = haversine(lat, lon, row['시점 위도'], row['시점 경도'])
-    d2 = haversine(lat, lon, row['종점 위도'], row['종점 경도'])
-    total = haversine(row['시점 위도'], row['시점 경도'], row['종점 위도'], row['종점 경도'])
+    d1 = haversine(lat, lon, row['시점위도'], row['시점경도'])
+    d2 = haversine(lat, lon, row['종점위도'], row['종점경도'])
+    total = haversine(row['시점위도'], row['시점경도'], row['종점위도'], row['종점경도'])
     return abs((d1 + d2) - total) <= tol
 
+#이후 이거 확인을 위해서 클릭시 위치가 찍히는 거 만들어서 그 장소의 제한 속도를 볼 수 있도록 해야함.
 @app.route('/speed', methods=['GET'])
 def speed():
     lat = request.args.get('lat', type=float)

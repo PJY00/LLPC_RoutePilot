@@ -134,6 +134,12 @@ function drawRoute() {
     const traf = document.getElementById("trafficInfo").value;
     const s = startMarker.getPosition(), e = endMarker.getPosition();
 
+    // ✅ 출발지와 도착지를 모두 포함하는 지도 범위로 설정
+    const bounds = new Tmapv2.LatLngBounds();
+    bounds.extend(s);
+    bounds.extend(e);
+    map.fitBounds(bounds);
+
     if (opt === "0") {
         // 0번 → 날씨 기준 추천 경로
         drawRecommendedRoute(s._lng, s._lat, e._lng, e._lat, traf);
@@ -512,7 +518,7 @@ function setupAddressGeocode() {
                 "주소 변환 중 오류가 발생했습니다.";
         });
 }
-
+//여기는 속도를 보기 위해해
 //현재 위치 10초마다 전달달
 function fetchSpeed() {
     navigator.geolocation.getCurrentPosition(function (position) {
