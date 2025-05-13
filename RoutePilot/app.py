@@ -3,6 +3,7 @@ import os, requests
 from dotenv import load_dotenv, find_dotenv
 from datetime import datetime, timedelta
 import math,csv
+from geopy.distance import geodesic
 
 app = Flask(__name__)
 load_dotenv(find_dotenv())
@@ -45,10 +46,19 @@ def haversine(lat1, lon1, lat2, lon2):
     return 2 * R * math.asin(math.sqrt(a))
 
 def is_in_segment(lat, lon, row, tol=50):
-    """사용자 좌표(lat, lon)가 row에 정의된 구간 위에 있는지 판단 (tol: 오차 허용치 m)"""
-    d1 = haversine(lat, lon, row['시점위도'], row['시점경도'])
-    d2 = haversine(lat, lon, row['종점위도'], row['종점경도'])
-    total = haversine(row['시점위도'], row['시점경도'], row['종점위도'], row['종점경도'])
+    """
+    사용자 좌표(lat, lon)가 row에 정의된 구간 위에 있는지 판단 (tol: 오차 허용치 m).
+    geodesic() 으로 거리를 계산해, (사용자→시점부)+(사용자→종점부) 합이 구간 전체 거리와 tol 이내면 그 위에 있다고 봅니다.
+    """
+    start = (row['시점위도'], row['시점경도'])
+    end   = (row['종점위도'], row['종점경도'])
+    user  = (lat, lon)
+
+    # 사용자→시점부, 사용자→종점부, 시점부→종점부
+    d1 = geodesic(user, start).meters
+    d2 = geodesic(user, end).meters
+    total = geodesic(start, end).meters
+
     return abs((d1 + d2) - total) <= tol
 
 #이후 이거 확인을 위해서 클릭시 위치가 찍히는 거 만들어서 그 장소의 제한 속도를 볼 수 있도록 해야함.
@@ -62,10 +72,11 @@ def speed():
     for row in speed_data:
         if is_in_segment(lat, lon, row):
             return jsonify({
-                '노선명': row['노선명'],
-                '시점부': row['시점부'],
-                '종점부': row['종점부'],
-                '속도': row['기점 방향 제한속도(kph)']
+                'road': row['노선명'],
+                'start': row['시점부'],
+                'end': row['종점부'],
+                'speed_start': row['기점 방향 제한속도(kph)'],
+                'speed_end': row['종점 방향 제한속도(kph)']
             })
     return jsonify({'message': '해당 위치의 제한속도 정보를 찾을 수 없습니다.'}), 404
 
