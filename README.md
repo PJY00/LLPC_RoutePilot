@@ -44,6 +44,16 @@ pip3 install -r requirements.txt
 ### How to use
 
 TODO
+입력요소
+-현재 위치
+-목적지
+-길찾기 조건 선택
+
+출력 요소
+-출발지와 도착지를 모두 포함하는 지도
+-선택 조건으로 찾은 경로 표출
+-현재 위치(고속도로일 때)의 제한속도 표기
+-날씨정보 표출
 
 ---
 
@@ -55,10 +65,10 @@ TODO
 
 ### Contacts
 
-박지영(팀장) - 
-최희진 - 
+박지영(팀장) - kdio@chungbuk.ac.kr
+최희진 - osislanc2918@gmail.com
 이진 - 
-이은지 - 
+이은지 - hkum0987@naver.com
 
 ---
 
