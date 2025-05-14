@@ -154,7 +154,7 @@ def weather():
         url = f"http://apis.data.go.kr/1360000/VilageFcstInfoService_2.0/getVilageFcst"
         params = {
             "serviceKey":KMA_KEY,
-            "numOfRows": "10000",
+            "numOfRows": "100",
             "pageNo": "1",
             "dataType": "JSON",
             "base_date": base_date,
