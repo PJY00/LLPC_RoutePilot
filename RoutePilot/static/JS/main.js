@@ -35,6 +35,7 @@ function fetchRouteRisk(startX, startY, endX, endY, option, trafficInfo) {
             },
             success: res => {
                 let totalDist = 0, lastKm = 0, risk = 0;
+                const weatherCache = {};
                 const promises = [];
 
                 res.features.forEach(seg => {
@@ -52,14 +53,19 @@ function fetchRouteRisk(startX, startY, endX, endY, option, trafficInfo) {
                             lastKm = km;
                             const roundedLat = Math.round(pts[i]._lat * 100) / 100;
                             const roundedLon = Math.round(pts[i]._lng * 100) / 100;
-                            promises.push(
-                                fetch("/weather", {
+                            const key = `${roundedLat},${roundedLon}`;
+
+                            if (!weatherCache[key]) {
+                                weatherCache[key] = fetch("/weather", {
                                     method: "POST",
                                     headers: { "Content-Type": "application/json" },
                                     body: JSON.stringify({ lat: roundedLat, lon: roundedLon })
-                                })
-                                    .then(r => r.json())
-                                    .then(d => { risk += parseFloat(d.pcp) || 0; })
+                                }).then(r => r.json());
+                            }
+
+                            // 캐시된 Promise를 재사용
+                            promises.push(
+                                weatherCache[key].then(d => { risk += parseFloat(d.pcp) || 0; })
                             );
                         }
                     }
@@ -125,7 +131,7 @@ function drawRecommendedRoute(startX, startY, endX, endY, trafficInfo) {
 
 function drawFastestRoute(startX, startY, endX, endY, trafficInfo) {
     // 그냥 Tmap의 '1번(최소시간)' 옵션 호출
-    searchAndDrawRoute(startX, startY, endX, endY, "1", trafficInfo);
+    searchAndDrawRoute(startX, startY, endX, endY, "19", trafficInfo);
 }
 
 function fitMapToRoute() {
@@ -295,32 +301,6 @@ function searchAndDrawRoute(startX, startY, endX, endY, searchOption, trafficInf
 
                     // ✅ 경로 포인트 모두 bounds에 추가
                     pts.forEach(pt => bounds.extend(pt));
-
-                    // 1km마다 날씨 요청
-                    for (let i = 1; i < pts.length; i++) {
-                        const p0 = pts[i - 1], p1 = pts[i];
-                        const d = calculateDistance(p0._lat, p0._lng, p1._lat, p1._lng);
-                        totalDist += d;
-
-                        if (Math.floor(totalDist / 1000) > lastKmMark) {
-                            lastKmMark++;
-                            const roundedLat = Math.round(p1._lat * 100) / 100;
-                            const roundedLon = Math.round(p1._lng * 100) / 100;
-
-                            fetch("/weather", {
-                                method: "POST",
-                                headers: { "Content-Type": "application/json" },
-                                body: JSON.stringify({ lat: roundedLat, lon: roundedLon })
-                            })
-                                .then(res => res.json())
-                                .then(data => {
-                                    console.log(`${lastKmMark}km :`, data);
-                                })
-                                .catch(err => {
-                                    console.error(`${lastKmMark}km 날씨 요청 실패:`, err);
-                                });
-                        }
-                    }
 
                     // 경로 선 그리기
                     const trafficArr = (trafficInfo === "Y") ? seg.geometry.traffic : [];
@@ -538,7 +518,6 @@ setInterval(fetchSpeed, 10000);
 
 // 페이지 로드 시 처음 실행
 fetchSpeed();
-
 
 // 페이지 로드 후 실행
 window.onload = initMapAndWeather;
