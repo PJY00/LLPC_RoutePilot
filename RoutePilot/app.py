@@ -122,14 +122,14 @@ def get_latest_base_time():
     forecast_hours = [2, 5, 8, 11, 14, 17, 20, 23]
 
     for h in reversed(forecast_hours):
-        if kst_now.hour > h or (kst_now.hour == h and kst_now.minute >= 45):
+        base_time_dt = kst_now.replace(hour=h, minute=0, second=0, microsecond=0)
+        if kst_now >= base_time_dt + timedelta(minutes=40):
             base_date = kst_now.strftime("%Y%m%d")
-            base_time = f"{h:02}30"
-            return base_date, base_time
+            return base_date, f"{h:02}00"
 
-    # 이른 새벽이면 전날 23:30 예보
+    # 못 찾으면 전날 23:00
     yesterday = kst_now - timedelta(days=1)
-    return yesterday.strftime("%Y%m%d"), "2330"
+    return yesterday.strftime("%Y%m%d"), "2300"
 
 @app.route('/')
 def index():
@@ -154,7 +154,7 @@ def weather():
         url = f"http://apis.data.go.kr/1360000/VilageFcstInfoService_2.0/getVilageFcst"
         params = {
             "serviceKey":KMA_KEY,
-            "numOfRows": "100",
+            "numOfRows": "50",
             "pageNo": "1",
             "dataType": "JSON",
             "base_date": base_date,
