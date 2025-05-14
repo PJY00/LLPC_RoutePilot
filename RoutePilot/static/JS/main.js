@@ -75,7 +75,6 @@ function fetchRouteRisk(startX, startY, endX, endY, option, trafficInfo) {
 }
 
 function drawRecommendedRoute(startX, startY, endX, endY, trafficInfo) {
-    // 0,1,2 옵션 전부 평가
     Promise.all(
         ["0", "2"].map(opt =>
             fetchRouteRisk(startX, startY, endX, endY, opt, trafficInfo)
@@ -83,34 +82,36 @@ function drawRecommendedRoute(startX, startY, endX, endY, trafficInfo) {
     ).then(results => {
         // 1) 최소 리스크 찾기
         const minRisk = Math.min(...results.map(r => r.risk));
-        // 2) 그 중에 최소시간 경로로 다시 추려내기
         const candidates = results.filter(r => r.risk === minRisk);
         candidates.sort((a, b) => a.totalTime - b.totalTime);
         const best = candidates[0];
 
-        console.log(`추천 경로(0번): 옵션 ${best.option}, 리스크 ${best.risk.toFixed(1)}, 시간 ${(best.totalTime / 60).toFixed(0)}분`);
-
-        // 지도에 표시
+        // 초기화
         resetRouteData();
+
+        // ——— 여기서 bounds 생성 ———
+        const bounds = new Tmapv2.LatLngBounds();
+
+        // 2) 경로 그리기 & bounds에 추가
         best.features.forEach(seg => {
             if (seg.geometry.type === "LineString") {
                 const pts = seg.geometry.coordinates.map(c => {
                     const p = new Tmapv2.Point(c[0], c[1]);
                     return new Tmapv2.Projection.convertEPSG3857ToWGS84GEO(p);
                 });
+                pts.forEach(pt => bounds.extend(pt));               // 경로 포인트 추가
                 const trafArr = (trafficInfo === "Y") ? seg.geometry.traffic : [];
                 drawLine(pts, trafArr);
             } else {
-                const url = seg.properties.pointType === "S"
-                    ? "https://tmapapi.sktelecom.com/upload/tmap/marker/pin_r_m_s.png"
-                    : seg.properties.pointType === "E"
-                        ? "https://tmapapi.sktelecom.com/upload/tmap/marker/pin_r_m_e.png"
-                        : "http://topopen.tmap.co.kr/imgs/point.png";
                 const p = new Tmapv2.Point(seg.geometry.coordinates[0], seg.geometry.coordinates[1]);
                 const cp = new Tmapv2.Projection.convertEPSG3857ToWGS84GEO(p);
-                addPOIMarker(cp._lat, cp._lng, url, seg.properties.pointType);
+                bounds.extend(cp);
             }
         });
+
+        // ——— 마지막에 한 번만 전체 화면 맞춤 ———
+        map.fitBounds(bounds);
+
         // 요약정보
         const p0 = best.features[0].properties;
         document.getElementById("route_info").innerText =
@@ -121,9 +122,25 @@ function drawRecommendedRoute(startX, startY, endX, endY, trafficInfo) {
             alert("추천 경로를 불러오는 중 오류가 발생했습니다.");
         });
 }
+
 function drawFastestRoute(startX, startY, endX, endY, trafficInfo) {
     // 그냥 Tmap의 '1번(최소시간)' 옵션 호출
     searchAndDrawRoute(startX, startY, endX, endY, "1", trafficInfo);
+}
+
+function fitMapToRoute() {
+    const bounds = new Tmapv2.LatLngBounds();
+    // 1) 폴리라인 점들
+    routePolylines.forEach(pl => {
+        pl.getPath().forEach(pt => {
+            bounds.extend(pt);
+        });
+    });
+    // 2) 마커들
+    if (startMarker) bounds.extend(startMarker.getPosition());
+    if (endMarker) bounds.extend(endMarker.getPosition());
+    // 3) 실제 적용
+    map.fitBounds(bounds);
 }
 
 function drawRoute() {
@@ -133,6 +150,11 @@ function drawRoute() {
     const opt = document.getElementById("selectLevel").value;
     const traf = document.getElementById("trafficInfo").value;
     const s = startMarker.getPosition(), e = endMarker.getPosition();
+
+    // ✅ 출발지와 도착지를 모두 포함하는 지도 범위로 설정
+    const bounds = new Tmapv2.LatLngBounds();
+    bounds.extend(s);
+    bounds.extend(e);
 
     if (opt === "0") {
         // 0번 → 날씨 기준 추천 경로
@@ -173,44 +195,14 @@ function initMapAndWeather() {
             });
 
             // 현재 위치 마커
-            marker = new Tmapv2.Marker({
-                position: new Tmapv2.LatLng(lat, lon),
-                map: map
-            });
+
 
             // 날씨 정보 갱신
             updateWeather(lat, lon);
             setInterval(() => updateWeather(lat, lon), 10 * 60 * 1000);
 
             // 지도 클릭 이벤트: 마커 찍고 경로 요청
-            map.addListener("click", function (evt) {
-                const lat = evt.latLng._lat;
-                const lon = evt.latLng._lng;
-
-                if (!startMarker) {
-                    startMarker = new Tmapv2.Marker({
-                        position: new Tmapv2.LatLng(lat, lon),
-                        icon: "https://tmapapi.sktelecom.com/upload/tmap/marker/pin_r_m_s.png",
-                        map: map
-                    });
-                } else if (!endMarker) {
-                    endMarker = new Tmapv2.Marker({
-                        position: new Tmapv2.LatLng(lat, lon),
-                        icon: "https://tmapapi.sktelecom.com/upload/tmap/marker/pin_r_m_e.png",
-                        map: map
-                    });
-
-                    requestRoute(startMarker.getPosition(), endMarker.getPosition());
-                } else {
-                    startMarker.setMap(null);
-                    endMarker.setMap(null);
-                    startMarker = null;
-                    endMarker = null;
-                    if (routeLayer) {
-                        routeLayer.setMap(null);
-                    }
-                }
-            });
+            //이 함수 뭔지 알아보기
 
         }, (error) => {
             console.error("위치 정보 가져오기 실패:", error);
@@ -279,6 +271,7 @@ function resetRouteData() {
 // (2) 경로 탐색 → 그리기
 function searchAndDrawRoute(startX, startY, endX, endY, searchOption, trafficInfo) {
     resetRouteData();
+
     $.ajax({
         type: "POST",
         url: `https://apis.openapi.sk.com/tmap/routes?version=1&format=json&appKey=${APPKEY}`,
@@ -290,28 +283,30 @@ function searchAndDrawRoute(startX, startY, endX, endY, searchOption, trafficInf
         },
         success: function (res) {
             const feat = res.features;
-            // 1km마다 샘플링하기 위한 변수
-            let totalDist = 0;    // 누적 거리(m)
-            let lastKmMark = 0;   // 직전 샘플 km 지점
+            let totalDist = 0;
+            let lastKmMark = 0;
+
+            const bounds = new Tmapv2.LatLngBounds();  // ✅ 전체 경로 영역
 
             feat.forEach(seg => {
                 if (seg.geometry.type === "LineString") {
-                    // EPSG3857 → WGS84 좌표 변환
+                    // EPSG3857 → WGS84 변환
                     const pts = seg.geometry.coordinates.map(c => {
                         const p = new Tmapv2.Point(c[0], c[1]);
                         return new Tmapv2.Projection.convertEPSG3857ToWGS84GEO(p);
                     });
 
-                    // 각 구간 사이 거리 누적하면서 1km마다 날씨 요청
+                    // ✅ 경로 포인트 모두 bounds에 추가
+                    pts.forEach(pt => bounds.extend(pt));
+
+                    // 1km마다 날씨 요청
                     for (let i = 1; i < pts.length; i++) {
                         const p0 = pts[i - 1], p1 = pts[i];
                         const d = calculateDistance(p0._lat, p0._lng, p1._lat, p1._lng);
                         totalDist += d;
 
-                        // 새로 1km 지점에 도달했으면
                         if (Math.floor(totalDist / 1000) > lastKmMark) {
                             lastKmMark++;
-                            // 격자 반올림: 소수점 둘째 자리까지
                             const roundedLat = Math.round(p1._lat * 100) / 100;
                             const roundedLon = Math.round(p1._lng * 100) / 100;
 
@@ -330,25 +325,24 @@ function searchAndDrawRoute(startX, startY, endX, endY, searchOption, trafficInf
                         }
                     }
 
-                    // 원래 교통정보 반영해서 그리기
+                    // 경로 선 그리기
                     const trafficArr = (trafficInfo === "Y") ? seg.geometry.traffic : [];
                     drawLine(pts, trafficArr);
 
                 } else {
-                    // 기존 S/E/P 마커 그리기
-                    const prop = seg.properties;
-                    const url = prop.pointType === "P"
-                        ? "http://topopen.tmap.co.kr/imgs/point.png"
-                        : prop.pointType === "S"
-                            ? "https://tmapapi.sktelecom.com/upload/tmap/marker/pin_r_m_s.png"
-                            : "https://tmapapi.sktelecom.com/upload/tmap/marker/pin_r_m_e.png";
                     const p = new Tmapv2.Point(seg.geometry.coordinates[0], seg.geometry.coordinates[1]);
                     const cp = new Tmapv2.Projection.convertEPSG3857ToWGS84GEO(p);
-                    addPOIMarker(cp._lat, cp._lng, url, prop.pointType);
+
+                    // ✅ 마커 좌표도 bounds에 포함
+                    bounds.extend(cp);
                 }
             });
 
-            // 요약정보 업데이트
+            // ✅ 경로 전체가 보이도록 지도 확대/이동
+            map.fitBounds(bounds);
+            fitMapToRoute();
+
+            // 요약 정보 출력
             const prop0 = feat[0].properties;
             document.getElementById("route_info").innerText =
                 `🛣 거리: ${(prop0.totalDistance / 1000).toFixed(1)}km | 🕒 ${(prop0.totalTime / 60).toFixed(0)}분`;
@@ -401,7 +395,7 @@ function drawLine(points, trafficArr) {
     }
 }
 
-function getCurrentLocation() {
+function getCurrentLocation() {//출발지 지정 onclick과 이어짐
     if (!navigator.geolocation) {
         return alert("이 브라우저는 위치 정보를 지원하지 않습니다.");
     }
@@ -513,6 +507,7 @@ function setupAddressGeocode() {
         });
 }
 
+//여기는 속도를 보기 위해해
 //현재 위치 10초마다 전달달
 function fetchSpeed() {
     navigator.geolocation.getCurrentPosition(function (position) {
@@ -522,13 +517,20 @@ function fetchSpeed() {
         fetch(`/speed?lat=${lat}&lon=${lon}`)
             .then(res => res.json())
             .then(data => {
-                if (data.speed) {
-                    document.getElementById("speedDisplay").innerText =
-                        `현재 구간 제한속도: ${data.speed} km/h`;
+                const display = document.getElementById("speedDisplay");
+
+                if (data.speed_start && data.speed_end) {
+                    display.innerText =
+                        `현재 도로: ${data.road}\n` +
+                        `시점: ${data.start}, 종점: ${data.end}\n` +
+                        `제한속도 (기점 방향): ${data.speed_start} km/h, (종점 방향): ${data.speed_end} km/h`;
                 } else if (data.message) {
-                    document.getElementById("speedDisplay").innerText = data.message;
+                    display.innerText = data.message;
+                } else {
+                    display.innerText = "제한속도 정보를 찾을 수 없습니다.";
                 }
-            }).catch(err => {
+            })
+            .catch(err => {
                 document.getElementById("speedDisplay").innerText = '오류: ' + err;
             });
     });

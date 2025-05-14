@@ -3,6 +3,7 @@ import os, requests
 from dotenv import load_dotenv, find_dotenv
 from datetime import datetime, timedelta
 import math,csv
+from geopy.distance import geodesic
 
 app = Flask(__name__)
 load_dotenv(find_dotenv())
@@ -24,10 +25,10 @@ def load_speed_data():
         reader = csv.DictReader(f)
         for row in reader:
             # 문자열을 적절히 변환
-            row['시점 위도'] = float(row['시점 위도'])
-            row['시점 경도'] = float(row['시점 경도'])
-            row['종점 위도'] = float(row['종점 위도'])
-            row['종점 경도'] = float(row['종점 경도'])
+            row['시점위도'] = float(row['시점위도'])
+            row['시점경도'] = float(row['시점경도'])
+            row['종점위도'] = float(row['종점위도'])
+            row['종점경도'] = float(row['종점경도'])
             row['기점 방향 제한속도(kph)'] = float(row['기점 방향 제한속도(kph)'])
             row['종점 방향 제한속도(kph)'] = float(row['종점 방향 제한속도(kph)'])
             data.append(row)
@@ -45,12 +46,22 @@ def haversine(lat1, lon1, lat2, lon2):
     return 2 * R * math.asin(math.sqrt(a))
 
 def is_in_segment(lat, lon, row, tol=50):
-    """사용자 좌표(lat, lon)가 row에 정의된 구간 위에 있는지 판단 (tol: 오차 허용치 m)"""
-    d1 = haversine(lat, lon, row['시점 위도'], row['시점 경도'])
-    d2 = haversine(lat, lon, row['종점 위도'], row['종점 경도'])
-    total = haversine(row['시점 위도'], row['시점 경도'], row['종점 위도'], row['종점 경도'])
+    """
+    사용자 좌표(lat, lon)가 row에 정의된 구간 위에 있는지 판단 (tol: 오차 허용치 m).
+    geodesic() 으로 거리를 계산해, (사용자→시점부)+(사용자→종점부) 합이 구간 전체 거리와 tol 이내면 그 위에 있다고 봅니다.
+    """
+    start = (row['시점위도'], row['시점경도'])
+    end   = (row['종점위도'], row['종점경도'])
+    user  = (lat, lon)
+
+    # 사용자→시점부, 사용자→종점부, 시점부→종점부
+    d1 = geodesic(user, start).meters
+    d2 = geodesic(user, end).meters
+    total = geodesic(start, end).meters
+
     return abs((d1 + d2) - total) <= tol
 
+#이후 이거 확인을 위해서 클릭시 위치가 찍히는 거 만들어서 그 장소의 제한 속도를 볼 수 있도록 해야함.
 @app.route('/speed', methods=['GET'])
 def speed():
     lat = request.args.get('lat', type=float)
@@ -61,10 +72,11 @@ def speed():
     for row in speed_data:
         if is_in_segment(lat, lon, row):
             return jsonify({
-                '노선명': row['노선명'],
-                '시점부': row['시점부'],
-                '종점부': row['종점부'],
-                '속도': row['기점 방향 제한속도(kph)']
+                'road': row['노선명'],
+                'start': row['시점부'],
+                'end': row['종점부'],
+                'speed_start': row['기점 방향 제한속도(kph)'],
+                'speed_end': row['종점 방향 제한속도(kph)']
             })
     return jsonify({'message': '해당 위치의 제한속도 정보를 찾을 수 없습니다.'}), 404
 
@@ -139,8 +151,9 @@ def weather():
         base_date, base_time_str = get_latest_base_time()
         print(f">>> 기준 날짜(base_date): {base_date}, 기준 시간(base_time): {base_time_str}")
 
-        url = f"http://apis.data.go.kr/1360000/VilageFcstInfoService_2.0/getVilageFcst?serviceKey={KMA_KEY}"
+        url = f"http://apis.data.go.kr/1360000/VilageFcstInfoService_2.0/getVilageFcst"
         params = {
+            "serviceKey":KMA_KEY,
             "numOfRows": "10000",
             "pageNo": "1",
             "dataType": "JSON",
@@ -188,7 +201,7 @@ def weather():
             "pcp": target_items["PCP"],
             "sno": target_items["SNO"]
         }
-        print(">>> 최종 날씨 응답 데이터:", result)
+        #print(">>> 최종 날씨 응답 데이터:", result)
         return jsonify(result)
 
     except Exception as e:
