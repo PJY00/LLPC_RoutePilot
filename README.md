@@ -32,4 +32,30 @@ REF Delete the useless method
 CHORE Update the gitignore  
 
 ---
-- Contributor email fix for `unne-source`
+
+
+임시보관
+
+127.0.0.1 - - [14/May/2025 14:19:12] "GET /speed?lat=36.62518120491803&lon=127.45757259016392 HTTP/1.1" 404 -
+127.0.0.1 - - [14/May/2025 14:19:19] "GET / HTTP/1.1" 200 -
+127.0.0.1 - - [14/May/2025 14:19:20] "GET /static/CSS/nav.css HTTP/1.1" 304 -
+127.0.0.1 - - [14/May/2025 14:19:20] "GET /static/JS/main.js HTTP/1.1" 304 -        
+127.0.0.1 - - [14/May/2025 14:19:20] "GET /speed?lat=36.62518120491803&lon=127.45757259016392 HTTP/1.1" 404 -
+>>> 받은 위도: 36.62518120491803, 경도: 127.45757259016392
+>>> 변환된 격자 좌표: x=68, y=106
+>>> 기준 날짜(base_date): 20250514, 기준 시간(base_time): 1130
+>>> 기상청 API 요청 URL: http://apis.data.go.kr/1360000/VilageFcstInfoService_2.0/getVilageFcst?serviceKey=6btho4zDh2O2ygQRePbgdQFgfa%252BWiojmF1VSqplCuvedRHOo2EtKUz19stQML5bnJ9zS2De1qEEc3X4dXlbu8w%253D%253D&numOfRows=10000&pageNo=1&dataType=JSON&base_date=20250514&base_time=1130&nx=68&ny=106
+>>> 응답 상태 코드: 200
+>>> 응답 본문: <OpenAPI_ServiceResponse>
+        <cmmMsgHeader>
+                <errMsg>SERVICE ERROR</errMsg>
+                <returnAuthMsg>SERVICE_KEY_IS_NOT_REGISTERED_ERROR</returnAuthMsg>  
+                <returnReasonCode>30</returnReasonCode>
+        </cmmMsgHeader>
+</OpenAPI_ServiceResponse>
+>>> 서버 에러 발생: Expecting value: line 1 column 1 (char 0)
+127.0.0.1 - - [14/May/2025 14:19:20] "POST /weather HTTP/1.1" 500 -
+
+날씨관련 오류 메시지임
+
+날씨 데이터의 개수를 줄이는 것이 속도를 올리는 방법일 듯. 필요한 정보(강수확률, 강수량, 강설량)만 가져오자

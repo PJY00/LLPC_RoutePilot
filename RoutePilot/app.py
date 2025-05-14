@@ -78,7 +78,7 @@ def speed():
                 'speed_start': row['기점 방향 제한속도(kph)'],
                 'speed_end': row['종점 방향 제한속도(kph)']
             })
-    return jsonify({'message': '해당 위치의 제한속도 정보를 찾을 수 없습니다.'}), 404
+    return jsonify({'message': '해당 위치의 제한속도 정보를 찾을 수 없습니다.'}), 200
 
 # 위도, 경도를 격자(x, y)로 변환
 def latlon_to_grid(lat, lon):
