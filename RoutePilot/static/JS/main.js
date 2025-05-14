@@ -105,8 +105,7 @@ function drawRecommendedRoute(startX, startY, endX, endY, trafficInfo) {
             } else {
                 const p = new Tmapv2.Point(seg.geometry.coordinates[0], seg.geometry.coordinates[1]);
                 const cp = new Tmapv2.Projection.convertEPSG3857ToWGS84GEO(p);
-                addPOIMarker(cp._lat, cp._lng, "", seg.properties.pointType);
-                bounds.extend(cp);                                  // 마커 위치 추가
+                bounds.extend(cp);
             }
         });
 
@@ -196,10 +195,7 @@ function initMapAndWeather() {
             });
 
             // 현재 위치 마커
-            marker = new Tmapv2.Marker({
-                position: new Tmapv2.LatLng(lat, lon),
-                map: map
-            });
+
 
             // 날씨 정보 갱신
             updateWeather(lat, lon);
@@ -336,7 +332,6 @@ function searchAndDrawRoute(startX, startY, endX, endY, searchOption, trafficInf
                 } else {
                     const p = new Tmapv2.Point(seg.geometry.coordinates[0], seg.geometry.coordinates[1]);
                     const cp = new Tmapv2.Projection.convertEPSG3857ToWGS84GEO(p);
-                    addPOIMarker(cp._lat, cp._lng, "", prop.pointType);
 
                     // ✅ 마커 좌표도 bounds에 포함
                     bounds.extend(cp);
@@ -400,7 +395,7 @@ function drawLine(points, trafficArr) {
     }
 }
 
-function getCurrentLocation() {
+function getCurrentLocation() {//출발지 지정 onclick과 이어짐
     if (!navigator.geolocation) {
         return alert("이 브라우저는 위치 정보를 지원하지 않습니다.");
     }
@@ -511,6 +506,7 @@ function setupAddressGeocode() {
                 "주소 변환 중 오류가 발생했습니다.";
         });
 }
+
 //여기는 속도를 보기 위해해
 //현재 위치 10초마다 전달달
 function fetchSpeed() {
