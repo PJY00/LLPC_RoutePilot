@@ -37,7 +37,6 @@ function fetchRouteRisk(startX, startY, endX, endY, option, trafficInfo) {
                 let totalDist = 0, lastKm = 0, risk = 0;
                 const weatherCache = {};
                 const promises = [];
-
                 res.features.forEach(seg => {
                     if (seg.geometry.type !== "LineString") return;
                     // 좌표 변환
@@ -70,7 +69,6 @@ function fetchRouteRisk(startX, startY, endX, endY, option, trafficInfo) {
                         }
                     }
                 });
-
                 Promise.all(promises)
                     .then(() => resolve({ option, risk, features: res.features }))
                     .catch(reject);
@@ -91,13 +89,10 @@ function drawRecommendedRoute(startX, startY, endX, endY, trafficInfo) {
         const candidates = results.filter(r => r.risk === minRisk);
         candidates.sort((a, b) => a.totalTime - b.totalTime);
         const best = candidates[0];
-
         // 초기화
         resetRouteData();
-
         // ——— 여기서 bounds 생성 ———
         const bounds = new Tmapv2.LatLngBounds();
-
         // 2) 경로 그리기 & bounds에 추가
         best.features.forEach(seg => {
             if (seg.geometry.type === "LineString") {
@@ -114,10 +109,8 @@ function drawRecommendedRoute(startX, startY, endX, endY, trafficInfo) {
                 bounds.extend(cp);
             }
         });
-
         // ——— 마지막에 한 번만 전체 화면 맞춤 ———
         map.fitBounds(bounds);
-
         // 요약정보
         const p0 = best.features[0].properties;
         document.getElementById("route_info").innerText =
@@ -156,12 +149,10 @@ function drawRoute() {
     const opt = document.getElementById("selectLevel").value;
     const traf = document.getElementById("trafficInfo").value;
     const s = startMarker.getPosition(), e = endMarker.getPosition();
-
     // ✅ 출발지와 도착지를 모두 포함하는 지도 범위로 설정
     const bounds = new Tmapv2.LatLngBounds();
     bounds.extend(s);
     bounds.extend(e);
-
     if (opt === "0") {
         // 0번 → 날씨 기준 추천 경로
         drawRecommendedRoute(s._lng, s._lat, e._lng, e._lat, traf);
@@ -178,20 +169,16 @@ function drawRoute() {
 
 function initMapAndWeather() {
     console.log("TMAP 스크립트 로드 확인:", typeof Tmapv2 !== "undefined");
-
     if (typeof Tmapv2 === "undefined") {
         console.error("Tmapv2가 정의되지 않았습니다.");
         return;
     }
-
     if (navigator.geolocation) {
         console.log("위치 정보를 요청합니다.");
         navigator.geolocation.getCurrentPosition((pos) => {
             console.log("위치 정보 가져오기 성공:", pos);
-
             const lat = pos.coords.latitude;
             const lon = pos.coords.longitude;
-
             // 지도 생성
             map = new Tmapv2.Map("map", {
                 center: new Tmapv2.LatLng(lat, lon),
@@ -199,14 +186,9 @@ function initMapAndWeather() {
                 height: "500px",
                 zoom: 15
             });
-
             // 날씨 정보 갱신
             updateWeather(lat, lon);
             setInterval(() => updateWeather(lat, lon), 10 * 60 * 1000);
-
-            // 지도 클릭 이벤트: 마커 찍고 경로 요청
-            //이 함수 뭔지 알아보기
-
         }, (error) => {
             console.error("위치 정보 가져오기 실패:", error);
         });
@@ -274,7 +256,6 @@ function resetRouteData() {
 // (2) 경로 탐색 → 그리기
 function searchAndDrawRoute(startX, startY, endX, endY, searchOption, trafficInfo) {
     resetRouteData();
-
     $.ajax({
         type: "POST",
         url: `https://apis.openapi.sk.com/tmap/routes?version=1&format=json&appKey=${APPKEY}`,
@@ -288,9 +269,7 @@ function searchAndDrawRoute(startX, startY, endX, endY, searchOption, trafficInf
             const feat = res.features;
             let totalDist = 0;
             let lastKmMark = 0;
-
-            const bounds = new Tmapv2.LatLngBounds();  // ✅ 전체 경로 영역
-
+            const bounds = new Tmapv2.LatLngBounds();
             feat.forEach(seg => {
                 if (seg.geometry.type === "LineString") {
                     // EPSG3857 → WGS84 변환
@@ -298,27 +277,21 @@ function searchAndDrawRoute(startX, startY, endX, endY, searchOption, trafficInf
                         const p = new Tmapv2.Point(c[0], c[1]);
                         return new Tmapv2.Projection.convertEPSG3857ToWGS84GEO(p);
                     });
-
-                    // ✅ 경로 포인트 모두 bounds에 추가
+                    // 경로 포인트 모두 bounds에 추가
                     pts.forEach(pt => bounds.extend(pt));
-
                     // 경로 선 그리기
                     const trafficArr = (trafficInfo === "Y") ? seg.geometry.traffic : [];
                     drawLine(pts, trafficArr);
-
                 } else {
                     const p = new Tmapv2.Point(seg.geometry.coordinates[0], seg.geometry.coordinates[1]);
                     const cp = new Tmapv2.Projection.convertEPSG3857ToWGS84GEO(p);
-
-                    // ✅ 마커 좌표도 bounds에 포함
+                    // 마커 좌표도 bounds에 포함
                     bounds.extend(cp);
                 }
             });
-
-            // ✅ 경로 전체가 보이도록 지도 확대/이동
+            // 경로 전체가 보이도록 지도 확대/이동
             map.fitBounds(bounds);
             fitMapToRoute();
-
             // 요약 정보 출력
             const prop0 = feat[0].properties;
             document.getElementById("route_info").innerText =
@@ -376,15 +349,12 @@ function getCurrentLocation() {//출발지 지정 onclick과 이어짐
     if (!navigator.geolocation) {
         return alert("이 브라우저는 위치 정보를 지원하지 않습니다.");
     }
-
     navigator.geolocation.getCurrentPosition(pos => {
         const lat = pos.coords.latitude;
         const lon = pos.coords.longitude;
-
         // 전역 변수에 저장
         startLat = lat;
         startLon = lon;
-
         // 지도에 출발 마커 찍기 (기존 startMarker가 있다면 교체)
         if (startMarker) startMarker.setMap(null);
         startMarker = new Tmapv2.Marker({
@@ -393,7 +363,6 @@ function getCurrentLocation() {//출발지 지정 onclick과 이어짐
             iconSize: new Tmapv2.Size(24, 24),
             map: map
         });
-
         // 출발지 주소 보여주는 input#start-address만 있으면 OK
         fetchReverseGeocoding(lon, lat)
             .then(address => {
@@ -403,7 +372,6 @@ function getCurrentLocation() {//출발지 지정 onclick과 이어짐
                 console.error("주소 변환 실패:", err);
                 document.getElementById("start-address").value = "주소 조회 실패";
             });
-
     }, err => {
         console.error("위치 접근 실패:", err);
         alert("위치 정보를 가져오지 못했습니다.");
@@ -439,7 +407,6 @@ function setupAddressGeocode() {
         alert("도착지 주소를 입력하세요.");
         return;
     }
-
     // 2) Flask 프록시 엔드포인트 호출
     fetch("/fulladdr-geocode", {
         method: "POST",
@@ -453,15 +420,12 @@ function setupAddressGeocode() {
                 document.getElementById("result").innerText = "주소를 찾을 수 없습니다.";
                 return;
             }
-
             // 3) 첫 번째 결과 가져오기
             const pt = coords[0];
             const lat = pt.lat || pt.newLat;
             const lon = pt.lon || pt.newLon;
-
             // 4) 기존 도착 마커 제거
             if (endMarker) endMarker.setMap(null);
-
             // 5) 새 도착 마커 생성
             endMarker = new Tmapv2.Marker({
                 position: new Tmapv2.LatLng(lat, lon),
@@ -469,13 +433,10 @@ function setupAddressGeocode() {
                 iconSize: new Tmapv2.Size(24, 24),
                 map: map
             });
-
             // 6) 지도 중심 이동 & 결과 표시
             map.setCenter(new Tmapv2.LatLng(lat, lon));
             document.getElementById("result").innerText =
                 `도착지: ${fullAddr} (위경도: ${lat}, ${lon})`;
-
-            // ※ 여긴 더 이상 경로 탐색 안 함
         })
         .catch((err) => {
             console.error("주소 변환 오류:", err);
@@ -484,18 +445,16 @@ function setupAddressGeocode() {
         });
 }
 
-//여기는 속도를 보기 위해해
-//현재 위치 10초마다 전달달
+//여기는 속도를 보기 위해
+//현재 위치 10초마다 전달
 function fetchSpeed() {
     navigator.geolocation.getCurrentPosition(function (position) {
         const lat = position.coords.latitude;
         const lon = position.coords.longitude;
-
         fetch(`/speed?lat=${lat}&lon=${lon}`)
             .then(res => res.json())
             .then(data => {
                 const display = document.getElementById("speedDisplay");
-
                 if (data.speed_start && data.speed_end) {
                     display.innerText =
                         `현재 도로: ${data.road}\n` +
