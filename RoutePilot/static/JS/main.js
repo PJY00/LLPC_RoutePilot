@@ -194,9 +194,6 @@ function initMapAndWeather() {
                 zoom: 15
             });
 
-            // 현재 위치 마커
-
-
             // 날씨 정보 갱신
             updateWeather(lat, lon);
             setInterval(() => updateWeather(lat, lon), 10 * 60 * 1000);
