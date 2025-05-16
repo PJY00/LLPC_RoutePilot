@@ -43,15 +43,7 @@ document.addEventListener("DOMContentLoaded", () => {
         }
     }
 
-    function updateSpeed() {
-        currentSpeed = Math.floor(Math.random() * 120); // 속도 랜덤 (0~120)
-        currentRoad = currentSpeed > 80 ? "고속도로" : "일반 도로";
-        speedDisplay.textContent = `${currentSpeed} km/h`;
-        roadType.textContent = `도로 유형: ${currentRoad}`;
-    }
-
     setInterval(() => {
-        updateSpeed();
         updateWeather();
     }, 3000);
 });
