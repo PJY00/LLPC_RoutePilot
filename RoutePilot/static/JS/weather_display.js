@@ -1,0 +1,62 @@
+document.addEventListener("DOMContentLoaded", () => {
+    const speedDisplay = document.getElementById("speed");
+    const weatherIcon = document.getElementById("weather-icon");
+    const weatherInfo = document.getElementById("weather-info");
+    const roadType = document.getElementById("road-type");
+
+    let currentSpeed = 0;
+    let currentRoad = "일반 도로";
+
+    const weatherIcons = {
+        sunny: "🌞",
+        cloudy: "☁️",
+        rainy: "🌧️",
+        snowy: "❄️",
+        foggy: "🌫️"
+    };
+
+    async function updateWeather() {
+        try {
+            const response = await fetch("/weather", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify({
+                    lat: 37.5665, // 기본 좌표 (서울)
+                    lon: 126.9780
+                })
+            });
+
+            const data = await response.json();
+            const { weather, temperature } = data;
+
+            let condition = "맑음";
+            if (weather.includes("비")) condition = "비";
+            else if (weather.includes("눈")) condition = "눈";
+            else if (weather.includes("구름")) condition = "흐림";
+
+            weatherIcon.textContent = 
+                condition === "비" ? weatherIcons.rainy :
+                condition === "눈" ? weatherIcons.snowy :
+                condition === "흐림" ? weatherIcons.cloudy :
+                weatherIcons.sunny;
+
+            weatherInfo.textContent = `${condition} | ${temperature}°C`;
+        } catch (error) {
+            weatherInfo.textContent = "날씨 정보 로딩 실패";
+        }
+    }
+
+    function updateSpeed() {
+        currentSpeed = Math.floor(Math.random() * 120); // 속도 랜덤 (0~120)
+        currentRoad = currentSpeed > 80 ? "고속도로" : "일반 도로";
+        speedDisplay.textContent = `${currentSpeed} km/h`;
+        roadType.textContent = `도로 유형: ${currentRoad}`;
+    }
+
+    setInterval(() => {
+        updateSpeed();
+        updateWeather();
+    }, 3000);
+});
