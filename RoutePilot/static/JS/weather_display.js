@@ -1,11 +1,6 @@
 document.addEventListener("DOMContentLoaded", () => {
-    const speedDisplay = document.getElementById("speed");
     const weatherIcon = document.getElementById("weather-icon");
     const weatherInfo = document.getElementById("weather-info");
-    const roadType = document.getElementById("road-type");
-
-    let currentSpeed = 0;
-    let currentRoad = "일반 도로";
 
     const weatherIcons = {
         sunny: "🌞",
