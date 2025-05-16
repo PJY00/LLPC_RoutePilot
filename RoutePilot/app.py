@@ -2,16 +2,83 @@ from flask import Flask, render_template, request, jsonify
 import os, requests
 from dotenv import load_dotenv, find_dotenv
 from datetime import datetime, timedelta
-import math
+import math,csv
+from geopy.distance import geodesic
 
 app = Flask(__name__)
 load_dotenv(find_dotenv())
 
 KMA_KEY = os.getenv("KMA_API_KEY")
 TMAP_KEY = os.getenv("TMAP_JS_KEY")
+KAKAO_REST_KEY = os.getenv("KAKAO_REST_KEY")
 print("✅ KMA_KEY:", KMA_KEY)
 print("✅ TMAP_KEY:", TMAP_KEY)
 
+def load_speed_data():
+    """
+    data/speed_data.csv 파일을 읽어 구간별 속도 및 좌표 정보를 로드합니다.
+    CSV 열: 노선명,시점부,종점부,구간길이,기점 방향 제한속도(kph),종점 방향 제한속도(kph),시점 위도,시점 경도,종점 위도,종점 경도
+    """
+    data = []
+    csv_path = os.path.join(os.path.dirname(__file__), 'data', 'speed.csv')
+    with open(csv_path, newline='', encoding='utf-8') as f:
+        reader = csv.DictReader(f)
+        for row in reader:
+            # 문자열을 적절히 변환
+            row['시점위도'] = float(row['시점위도'])
+            row['시점경도'] = float(row['시점경도'])
+            row['종점위도'] = float(row['종점위도'])
+            row['종점경도'] = float(row['종점경도'])
+            row['기점 방향 제한속도(kph)'] = float(row['기점 방향 제한속도(kph)'])
+            row['종점 방향 제한속도(kph)'] = float(row['종점 방향 제한속도(kph)'])
+            data.append(row)
+    return data
+
+speed_data = load_speed_data()
+
+def haversine(lat1, lon1, lat2, lon2):
+    """두 좌표 간 거리를 미터 단위로 계산합니다."""
+    R = 6371000  # 지구 반경 (m)
+    phi1, phi2 = math.radians(lat1), math.radians(lat2)
+    dphi = math.radians(lat2 - lat1)
+    dlambda = math.radians(lon2 - lon1)
+    a = math.sin(dphi/2)**2 + math.cos(phi1)*math.cos(phi2)*math.sin(dlambda/2)**2
+    return 2 * R * math.asin(math.sqrt(a))
+
+def is_in_segment(lat, lon, row, tol=50):
+    """
+    사용자 좌표(lat, lon)가 row에 정의된 구간 위에 있는지 판단 (tol: 오차 허용치 m).
+    geodesic() 으로 거리를 계산해, (사용자→시점부)+(사용자→종점부) 합이 구간 전체 거리와 tol 이내면 그 위에 있다고 봅니다.
+    """
+    start = (row['시점위도'], row['시점경도'])
+    end   = (row['종점위도'], row['종점경도'])
+    user  = (lat, lon)
+
+    # 사용자→시점부, 사용자→종점부, 시점부→종점부
+    d1 = geodesic(user, start).meters
+    d2 = geodesic(user, end).meters
+    total = geodesic(start, end).meters
+
+    return abs((d1 + d2) - total) <= tol
+
+#이후 이거 확인을 위해서 클릭시 위치가 찍히는 거 만들어서 그 장소의 제한 속도를 볼 수 있도록 해야함.
+@app.route('/speed', methods=['GET'])
+def speed():
+    lat = request.args.get('lat', type=float)
+    lon = request.args.get('lon', type=float)
+    if lat is None or lon is None:
+        return jsonify({'error': 'lat와 lon 파라미터가 필요합니다.'}), 400
+
+    for row in speed_data:
+        if is_in_segment(lat, lon, row):
+            return jsonify({
+                'road': row['노선명'],
+                'start': row['시점부'],
+                'end': row['종점부'],
+                'speed_start': row['기점 방향 제한속도(kph)'],
+                'speed_end': row['종점 방향 제한속도(kph)']
+            })
+    return jsonify({'message': '해당 위치의 제한속도 정보를 찾을 수 없습니다.'}), 200
 
 # 위도, 경도를 격자(x, y)로 변환
 def latlon_to_grid(lat, lon):
@@ -55,14 +122,14 @@ def get_latest_base_time():
     forecast_hours = [2, 5, 8, 11, 14, 17, 20, 23]
 
     for h in reversed(forecast_hours):
-        if kst_now.hour > h or (kst_now.hour == h and kst_now.minute >= 45):
+        base_time_dt = kst_now.replace(hour=h, minute=0, second=0, microsecond=0)
+        if kst_now >= base_time_dt + timedelta(minutes=40):
             base_date = kst_now.strftime("%Y%m%d")
-            base_time = f"{h:02}30"
-            return base_date, base_time
+            return base_date, f"{h:02}00"
 
-    # 이른 새벽이면 전날 23:30 예보
+    # 못 찾으면 전날 23:00
     yesterday = kst_now - timedelta(days=1)
-    return yesterday.strftime("%Y%m%d"), "2330"
+    return yesterday.strftime("%Y%m%d"), "2300"
 
 @app.route('/')
 def index():
@@ -84,9 +151,10 @@ def weather():
         base_date, base_time_str = get_latest_base_time()
         print(f">>> 기준 날짜(base_date): {base_date}, 기준 시간(base_time): {base_time_str}")
 
-        url = f"http://apis.data.go.kr/1360000/VilageFcstInfoService_2.0/getVilageFcst?serviceKey={KMA_KEY}"
+        url = f"http://apis.data.go.kr/1360000/VilageFcstInfoService_2.0/getVilageFcst"
         params = {
-            "numOfRows": "10000",
+            "serviceKey":KMA_KEY,
+            "numOfRows": "50",
             "pageNo": "1",
             "dataType": "JSON",
             "base_date": base_date,
@@ -133,7 +201,7 @@ def weather():
             "pcp": target_items["PCP"],
             "sno": target_items["SNO"]
         }
-        print(">>> 최종 날씨 응답 데이터:", result)
+        #print(">>> 최종 날씨 응답 데이터:", result)
         return jsonify(result)
 
     except Exception as e:
@@ -259,7 +327,7 @@ def about():
 
 @app.route('/help')
 def help():
-    return render_template("about.html")
+    return render_template("HowToUse.html")
 
 if __name__ == "__main__":
     app.run(debug=True)
