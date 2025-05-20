@@ -39,7 +39,7 @@ document.addEventListener("DOMContentLoaded", () => {
             weatherInfo.textContent = "날씨 정보 로딩 실패";
         }
     }
-    //실시간 위치 추적적
+    //실시간 위치 추적
      if (navigator.geolocation) {
         navigator.geolocation.watchPosition(
             (position) => {
