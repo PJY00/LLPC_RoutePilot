@@ -10,17 +10,14 @@ document.addEventListener("DOMContentLoaded", () => {
         foggy: "🌫️"
     };
 
-    async function updateWeather() {
+    async function updateWeather(lat, lon) {
         try {
             const response = await fetch("/weather", {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json"
                 },
-                body: JSON.stringify({
-                    lat: 37.5665, // 기본 좌표 (서울)
-                    lon: 126.9780
-                })
+                body: JSON.stringify({ lat, lon })
             });
 
             const data = await response.json();
@@ -43,7 +40,16 @@ document.addEventListener("DOMContentLoaded", () => {
         }
     }
 
+    let startLat = 37.5665;
+    let startLon = 126.9780;
+
     setInterval(() => {
-        updateWeather();
+        updateWeather(startLat, startLon);
     }, 3000);
+
+    window.setCoordinates = function(lat, lon){
+        startLat = lat;
+        startLon = lon;
+        updateWeather(startLat, startLon);
+    }
 });
