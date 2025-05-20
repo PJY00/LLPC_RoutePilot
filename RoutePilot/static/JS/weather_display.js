@@ -39,17 +39,27 @@ document.addEventListener("DOMContentLoaded", () => {
             weatherInfo.textContent = "날씨 정보 로딩 실패";
         }
     }
-
-    let startLat = 37.5665;
-    let startLon = 126.9780;
-
-    setInterval(() => {
-        updateWeather(startLat, startLon);
-    }, 3000);
-
+    //실시간 위치 추적적
+     if (navigator.geolocation) {
+        navigator.geolocation.watchPosition(
+            (position) => {
+                const lat = position.coords.latitude;
+                const lon = position.coords.longitude;
+                updateWeather(lat, lon);
+            },
+            (error) => {
+                weatherInfo.textContent = "위치 추적 실패";
+                console.error("위치 추적 실패", error);
+            },
+            {
+                enableHighAccuracy: true,
+                maximumAge: 10000,
+                timeout: 5000
+            }
+        );
+    }
+    //수동으로 날씨 좌표 설정할 경우
     window.setCoordinates = function(lat, lon){
-        startLat = lat;
-        startLon = lon;
         updateWeather(startLat, startLon);
     }
 });
