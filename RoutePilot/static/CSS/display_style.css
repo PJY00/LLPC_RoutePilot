@@ -1,0 +1,27 @@
+.weather-display {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 1.2rem;
+  margin-top: 10px;
+}
+
+#weather-icon {
+  font-size: 2rem;
+}
+
+.speed-display h2 {
+  font-size: 2.5rem;
+  color: #001D3D;
+}
+
+.dashboard {
+  background-color: #001D3D;
+  border-radius: 10px;
+  box-shadow: 0 0 10px rgba(0,0,0,0.1);
+}
+
+#map {
+  border: 1px solid #ccc;
+  border-radius: 8px;
+}
