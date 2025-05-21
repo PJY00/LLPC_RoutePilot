@@ -173,6 +173,9 @@ function initMapAndWeather() {
         console.error("Tmapv2가 정의되지 않았습니다.");
         return;
     }
+    // ✅ 제한속도 안내 문구 초기화
+    document.getElementById("speedDisplay").innerText = "지도를 클릭하면 해당 위치의 제한속도 정보가 표시됩니다.";
+
     if (navigator.geolocation) {
         console.log("위치 정보를 요청합니다.");
         navigator.geolocation.getCurrentPosition((pos) => {
@@ -186,6 +189,25 @@ function initMapAndWeather() {
                 height: "500px",
                 zoom: 15
             });
+            let marker = null;//클릭 마커를 저장하기 위한 변수
+            //경로를 클릭해서 위치값을 알기 위한 코드. 제한속도 잘 됬는지 확인을 위찬 코드
+            map.addListener("click", function (evt) {
+                console.log("지도 클릭됨", evt);
+                const clickLat = evt.latLng._lat;
+                const clickLon = evt.latLng._lng;
+                console.log("클릭 위치 좌표 : ", clickLat, clickLon);
+                // ✅ 클릭한 위치에 마커 표시 (1번)
+                if (marker) {
+                    marker.setMap(null);  // 기존 마커 제거
+                }
+                marker = new Tmapv2.Marker({
+                    position: new Tmapv2.LatLng(clickLat, clickLon),
+                    map: map
+                });
+
+                fetchSpeedAtClickedLocation(lat, lon);  // 아래 정의할 함수 호출
+            });
+
             // 날씨 정보 갱신
             updateWeather(lat, lon);
             setInterval(() => updateWeather(lat, lon), 10 * 60 * 1000);
@@ -471,6 +493,34 @@ function fetchSpeed() {
             });
     });
 }
+
+function fetchSpeedAtClickedLocation(lat, lon) {
+    fetch(`/speed?lat=${lat}&lon=${lon}`)
+        .then(res => res.json())
+        .then(data => {
+            const display = document.getElementById("speedDisplay");
+
+            if (data.speed_start && data.speed_end) {
+                display.className = "alert alert-info";
+                display.innerText =
+                    `현재 도로: ${data.road}\n` +
+                    `시점: ${data.start}, 종점: ${data.end}\n` +
+                    `제한속도 (기점 방향): ${data.speed_start} km/h, (종점 방향): ${data.speed_end} km/h`;
+            } else if (data.message) {
+                display.className = "alert alert-warning";
+                display.innerText = data.message;
+            } else {
+                display.className = "alert alert-danger";
+                display.innerText = "제한속도 정보를 찾을 수 없습니다.";
+            }
+        })
+        .catch(err => {
+            const display = document.getElementById("speedDisplay");
+            display.className = "alert alert-danger";
+            display.innerText = '오류 발생: ' + err;
+        });
+}
+
 
 // 10초마다 갱신
 setInterval(fetchSpeed, 10000);
