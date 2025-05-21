@@ -189,24 +189,6 @@ function initMapAndWeather() {
                 height: "500px",
                 zoom: 15
             });
-            let marker = null;//클릭 마커를 저장하기 위한 변수
-            //경로를 클릭해서 위치값을 알기 위한 코드. 제한속도 잘 됬는지 확인을 위찬 코드
-            map.addListener("click", function (evt) {
-                console.log("지도 클릭됨", evt);
-                const clickLat = evt.latLng._lat;
-                const clickLon = evt.latLng._lng;
-                console.log("클릭 위치 좌표 : ", clickLat, clickLon);
-                // ✅ 클릭한 위치에 마커 표시 (1번)
-                if (marker) {
-                    marker.setMap(null);  // 기존 마커 제거
-                }
-                marker = new Tmapv2.Marker({
-                    position: new Tmapv2.LatLng(clickLat, clickLon),
-                    map: map
-                });
-
-                fetchSpeedAtClickedLocation(lat, lon);  // 아래 정의할 함수 호출
-            });
 
             // 날씨 정보 갱신
             updateWeather(lat, lon);
@@ -341,31 +323,94 @@ function addPOIMarker(lat, lng, iconUrl, type) {
 // (4) 교통정보 반영 폴리라인 그리기
 function drawLine(points, trafficArr) {
     if (!trafficArr || trafficArr.length === 0) {
-        const pl = new Tmapv2.Polyline({ path: points, strokeColor: "#DD0000", strokeWeight: 6, map: map });
+        const pl = new Tmapv2.Polyline({
+            path: points,
+            strokeColor: "#DD0000",
+            strokeWeight: 6,
+            map: map
+        });
+
+        addPolylineClickListener(pl); // 👈 이벤트 등록 함수 호출
         routePolylines.push(pl);
         return;
     }
+
     const colorMap = { 0: "#06050D", 1: "#61AB25", 2: "#FFFF00", 3: "#E87506", 4: "#D61125" };
     let last = 0;
     trafficArr.forEach(seg => {
         const [s, e, idx] = seg;
+
         if (s > last) {
-            const pl0 = new Tmapv2.Polyline({ path: points.slice(last, s), strokeColor: "#06050D", strokeWeight: 6, map: map });
+            const pl0 = new Tmapv2.Polyline({
+                path: points.slice(last, s),
+                strokeColor: "#06050D",
+                strokeWeight: 6,
+                map: map
+            });
+            addPolylineClickListener(pl0); // 👈 이벤트 등록
             routePolylines.push(pl0);
         }
+
         const pl1 = new Tmapv2.Polyline({
             path: points.slice(s, e + 1),
             strokeColor: colorMap[idx] || "#06050D",
-            strokeWeight: 6, map: map
+            strokeWeight: 6,
+            map: map
         });
+        addPolylineClickListener(pl1); // 👈 이벤트 등록
         routePolylines.push(pl1);
         last = e + 1;
     });
+
     if (last < points.length) {
-        const pl2 = new Tmapv2.Polyline({ path: points.slice(last), strokeColor: "#06050D", strokeWeight: 6, map: map });
+        const pl2 = new Tmapv2.Polyline({
+            path: points.slice(last),
+            strokeColor: "#06050D",
+            strokeWeight: 6,
+            map: map
+        });
+        addPolylineClickListener(pl2); // 👈 이벤트 등록
         routePolylines.push(pl2);
     }
 }
+
+function addPolylineClickListener(pl) {
+    let marker = null;
+
+    pl.addListener("click", function (evt) {
+        const pathObj = pl.getPath();
+        if (!pathObj || !pathObj.path || pathObj.path.length === 0) {
+            console.error("Polyline 경로가 비어있습니다.");
+            return;
+        }
+
+        const path = pathObj.path;
+
+        // 클릭 이벤트 좌표도 evt.latLng._lat, _lng가 있을 수 있음
+        let clickLat, clickLon;
+        if (evt.latLng) {
+            clickLat = evt.latLng._lat;
+            clickLon = evt.latLng._lng;
+        } else {
+            // evt.latLng 없으면 path 첫 좌표 사용 (임시방편)
+            clickLat = path[0]._lat || path[0].lat;
+            clickLon = path[0]._lng || path[0].lng;
+        }
+
+        console.log("클릭 위치 좌표:", clickLat, clickLon);
+
+        // 마커 생성
+        if (marker) marker.setMap(null);
+        marker = new Tmapv2.Marker({
+            position: new Tmapv2.LatLng(clickLat, clickLon),
+            map: map
+        });
+
+        fetchSpeedAtClickedLocation(clickLat, clickLon);
+    });
+
+}
+
 
 function getCurrentLocation() {//출발지 지정 onclick과 이어짐
     if (!navigator.geolocation) {
