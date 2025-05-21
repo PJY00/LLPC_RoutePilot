@@ -510,13 +510,9 @@ function setupAddressGeocode() {
             });
             // 6) 지도 중심 이동 & 결과 표시
             map.setCenter(new Tmapv2.LatLng(lat, lon));
-            document.getElementById("result").innerText =
-                `도착지: ${fullAddr} (위경도: ${lat}, ${lon})`;
         })
         .catch((err) => {
             console.error("주소 변환 오류:", err);
-            document.getElementById("result").innerText =
-                "주소 변환 중 오류가 발생했습니다.";
         });
 }
 
