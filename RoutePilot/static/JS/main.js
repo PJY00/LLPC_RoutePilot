@@ -411,10 +411,14 @@ function addPolylineClickListener(pl) {
         });
 
         fetchSpeedAtClickedLocation(clickLat, clickLon);
+
+        // 👉 속도 입력창 표시
+        document.getElementById("speedInputContainer").style.display = "block";
+        document.getElementById("speedResult").innerText = "";
+        document.getElementById("userSpeed").value = "";
     });
 
 }
-
 
 function getCurrentLocation() {//출발지 지정 onclick과 이어짐
     if (!navigator.geolocation) {
@@ -543,6 +547,7 @@ function fetchSpeed() {
     });
 }
 
+let currentSpeedLimit = null; // 전역 선언
 function fetchSpeedAtClickedLocation(lat, lon) {
     fetch(`/speed?lat=${lat}&lon=${lon}`)
         .then(res => res.json())
@@ -550,6 +555,9 @@ function fetchSpeedAtClickedLocation(lat, lon) {
             const display = document.getElementById("speedDisplay");
 
             if (data.speed_start && data.speed_end) {
+                // 제한속도 평균 계산
+                currentSpeedLimit = Math.round((parseInt(data.speed_start) + parseInt(data.speed_end)) / 2);
+
                 display.className = "alert alert-info";
                 display.innerText =
                     `현재 도로: ${data.road}\n` +
@@ -570,6 +578,24 @@ function fetchSpeedAtClickedLocation(lat, lon) {
         });
 }
 
+function compareSpeed() {
+    const userSpeed = parseInt(document.getElementById("userSpeed").value);
+    const resultBox = document.getElementById("speedResult");
+
+    if (isNaN(userSpeed)) {
+        resultBox.innerText = "속도를 입력하세요.";
+        resultBox.style.color = "black";
+        return;
+    }
+
+    if (userSpeed > currentSpeedLimit) {
+        resultBox.innerText = `🚨 속도를 낮춰야 합니다. 제한속도: ${currentSpeedLimit}km/h`;
+        resultBox.style.color = "red";
+    } else {
+        resultBox.innerText = "✅ 적절한 속도입니다.";
+        resultBox.style.color = "green";
+    }
+}
 
 // 10초마다 갱신
 setInterval(fetchSpeed, 10000);

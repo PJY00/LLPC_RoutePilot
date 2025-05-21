@@ -53,6 +53,13 @@
     <button class="btn btn-primary" onclick="drawRoute()">경로 보기</button>
   </div>
 
+  <div id="speedInputContainer" style="display:none; margin-top:10px;">
+    <label>현재 속도 (km/h): </label>
+    <input type="number" id="userSpeed" />
+    <button onclick="compareSpeed()">속도 비교</button>
+    <p id="speedResult" style="margin-top:5px;"></p>
+  </div>
+
   <p id="route_info"></p>
   <div id="map" style="width:100%; height:500px;"></div>
 
