@@ -374,9 +374,8 @@ function drawLine(points, trafficArr) {
     }
 }
 
+let marker_ = null;
 function addPolylineClickListener(pl) {
-    let marker = null;
-
     pl.addListener("click", function (evt) {
         const pathObj = pl.getPath();
         if (!pathObj || !pathObj.path || pathObj.path.length === 0) {
@@ -399,9 +398,14 @@ function addPolylineClickListener(pl) {
 
         console.log("클릭 위치 좌표:", clickLat, clickLon);
 
-        // 마커 생성
-        if (marker) marker.setMap(null);
-        marker = new Tmapv2.Marker({
+        // 기존 마커 있으면 지도에서 제거
+        if (marker_) {
+            marker_.setMap(null);
+            marker_ = null;
+        }
+
+        // 새 마커 생성
+        marker_ = new Tmapv2.Marker({
             position: new Tmapv2.LatLng(clickLat, clickLon),
             map: map
         });
