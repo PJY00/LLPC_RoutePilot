@@ -4,24 +4,41 @@
   gap: 10px;
   font-size: 1.2rem;
   margin-top: 10px;
+  color: #ffffff;
 }
 
 #weather-icon {
   font-size: 2rem;
 }
 
-.speed-display h2 {
-  font-size: 2.5rem;
-  color: #001D3D;
+/* 날씨 설명 텍스트 */
+#weather-info {
+  font-size: 1.1rem;
+  color: #FFD60A;
 }
 
+.speed-display h2 {
+  font-size: 2.5rem;
+  color: #FFC300;}
+
+/*전체 대시보드 영역*/
 .dashboard {
   background-color: #001D3D;
-  border-radius: 10px;
-  box-shadow: 0 0 10px rgba(0,0,0,0.1);
+  color: #ffffff;
+  border-radius: 12px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+  padding: 1rem;
+}
+
+/* 대시보드 제목 */
+.dashboard h3 {
+  font-size: 1.6rem;
+  font-weight: bold;
+  color: #FFD60A; /* 포인트 옐로우 */
+  margin-bottom: 0.75rem;
 }
 
 #map {
-  border: 1px solid #ccc;
-  border-radius: 8px;
+  border: 2px solid #003566;
+  border-radius: 10px;
 }
