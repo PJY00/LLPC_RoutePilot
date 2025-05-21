@@ -129,18 +129,27 @@ function drawFastestRoute(startX, startY, endX, endY, trafficInfo) {
 
 function fitMapToRoute() {
     const bounds = new Tmapv2.LatLngBounds();
-    // 1) 폴리라인 점들
+
     routePolylines.forEach(pl => {
-        pl.getPath().forEach(pt => {
-            bounds.extend(pt);
-        });
+        const path = pl.getPath();
+        // Tmapv2.MVCArray 는 getLength, getAt 메서드가 있음
+        if (typeof path.getLength === 'function' && typeof path.getAt === 'function') {
+            const len = path.getLength();
+            for (let i = 0; i < len; i++) {
+                bounds.extend(path.getAt(i));
+            }
+        } else if (Array.isArray(path)) {
+            // 혹시 순수 배열인 경우도 대비
+            path.forEach(pt => bounds.extend(pt));
+        }
     });
-    // 2) 마커들
+
     if (startMarker) bounds.extend(startMarker.getPosition());
     if (endMarker) bounds.extend(endMarker.getPosition());
-    // 3) 실제 적용
+
     map.fitBounds(bounds);
 }
+
 
 function drawRoute() {
     if (!startMarker || !endMarker) {
