@@ -16,12 +16,10 @@
 
   <div class="row mb-3">
     <div class="col-md-6">
-
       <input type="text" id="start-address" class="form-control mb-2" placeholder="출발 주소" readonly>
     </div>
     <div class="col-md-6">
       <input type="text" id="fullAddr" class="form-control mb-2" placeholder="도착지 주소 입력">
-
     </div>
   </div>
 
@@ -46,11 +44,20 @@
       </select>
     </div>
   </div>
-  <!-- ▲ 여기를 추가하세요 ▲ -->
 
   <div class="mb-3">
-    <!-- 기존 drawRoute 호출 -->
+    <!-- 기존 경로 버튼 -->
     <button class="btn btn-primary" onclick="drawRoute()">경로 보기</button>
+
+    <!-- ⬇️ 테스트용 좌표 입력창 추가됨 -->
+    <div class="mt-3">
+      <label class="form-label">테스트용 좌표 입력</label>
+      <div class="input-group">
+        <input type="number" id="test-lat" class="form-control" placeholder="위도 (lat)" step="any">
+        <input type="number" id="test-lon" class="form-control" placeholder="경도 (lon)" step="any">
+        <button class="btn btn-outline-success" onclick="simulateMockPositionFromInput()">이동</button>
+      </div>
+    </div>
   </div>
 
   <p id="route_info"></p>
@@ -60,11 +67,31 @@
     <div id="speedDisplay" class="alert alert-info">제한속도 정보를 불러오는 중...</div>
   </div>
 
+  <!-- Tmap SDK -->
   <script src="https://apis.openapi.sk.com/tmap/jsv2?version=1&appKey={{ tmap_key }}"></script>
   <script>
     const APPKEY = "{{tmap_key}}";
   </script>
-  <script src="{{ url_for('static', filename='/JS/main.js') }}"></script>
+
+  <!-- 테스트용 좌표 입력값 → simulateMockPosition 호출 함수 -->
+  <script>
+    function simulateMockPositionFromInput() {
+      const lat = parseFloat(document.getElementById("test-lat").value);
+      const lon = parseFloat(document.getElementById("test-lon").value);
+      if (!isNaN(lat) && !isNaN(lon)) {
+        simulateMockPosition(lat, lon);
+      } else {
+        alert("위도와 경도를 올바르게 입력해주세요.");
+      }
+    }
+  </script>
+
+  <!-- 기존 main.js는 주석 처리 -->
+  <!-- <script src="{{ url_for('static', filename='/JS/main.js') }}"></script> -->
+
+  <!-- 실시간 경로 절단 + 테스트 함수 포함된 JS -->
+  <script src="{{ url_for('static', filename='JS/main_with_live_navigation_simul.js') }}"></script>
+
 </body>
 
 </html>
