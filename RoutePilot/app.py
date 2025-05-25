@@ -259,7 +259,7 @@ def about():
 
 @app.route('/help')
 def help():
-    return render_template("about.html")
+    return render_template("HowToUse.html")
 
 if __name__ == "__main__":
     app.run(debug=True)
