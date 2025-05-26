@@ -33,7 +33,7 @@ menuIcon.addEventListener('click', function () {
         if (!dropdown.matches(':hover') && !menuIcon.matches(':hover')) {
           dropdown.classList.remove('show');
         }
-      }, 1000);
+      }, 2000);
     });
 
     dropdown.addEventListener('mouseenter', () => {

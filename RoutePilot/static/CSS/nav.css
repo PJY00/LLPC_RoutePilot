@@ -1,4 +1,3 @@
-/* 기본 레이아웃 */
 .navbar {
   display: flex;
   justify-content: space-between;
@@ -8,80 +7,91 @@
   font-family: Arial, sans-serif;
 }
 
-.navbar-left a,
+.navbar-left {
+  display: flex;
+  align-items: center;
+  gap: 2rem;
+}
+
+.navbar-left a {
+  margin-left: 1.5rem;
+  text-decoration: none;
+  color: #001D3D;
+  font-weight: bold;
+  font-size: 1.8rem;
+}
+
+.navbar-right {
+  display: flex;
+  align-items: center;
+  gap: 1.2rem;
+}
+
 .navbar-right a {
+  margin-left: 1.5rem;
   text-decoration: none;
   color: #001D3D;
   font-weight: bold;
   font-size: 1.4rem;
-  margin-right: 2rem;
 }
 
 .menu-icon {
-  position: relative;        /* ::after 기준점 설정 */
-  display: inline-block;     /* 패딩/::after 동작 가능하게 */
-  z-index: 10;
+  margin-left: 1.3rem;
+  margin-bottom: 0.1rem;
+  color: #001D3D;
+  font-size: 1.5rem;
+  cursor: pointer;
 }
 
 .menu-icon::after {
   content: '';
   position: absolute;
-  top: 100%;                 /* 아이콘 바로 아래 */
+  top: 100%;          /* 바로 아래부터 시작 */
   left: 0;
-  width: 100%;
-  height: 24px;              /* 하단 hover 인식 범위 */
-  background: transparent;
-  z-index: 5;                /* nav보다 낮거나 같게 */
-  pointer-events: auto;      /* hover 감지 가능하게 */
+  width: 80%;
+  height: 10px;        /* 원하는 hover 거리 */
 }
 
-.hamburger-wrapper {
-  position: relative;
-}
-
-.menu-icon-wrapper {
-  position: relative;
-  display: inline-block;
-}
-
-.hover-buffer {
-  position: absolute;
-  top: -10px;
-  left: -10px;
-  width: 40px;
-  height: 40px;
-  background: transparent;
-}
-
-/* 드롭다운 기본 숨김 */
+/* 공통 */
 .dropdown-container {
-  display: none;
+  display: none;  /* 기본은 숨김 */
   position: absolute;
   top: 100%;
   left: 0;
   width: 100%;
-  background-color: #fff;
   padding: 2rem 5rem;
+  background-color: white;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  border-top: 2px solid #002366;
   z-index: 1000;
-  border-top: 2px solid #001D3D;
-
-  display: none;
-  flex-wrap: nowrap;
+  gap: 5rem;
   justify-content: center;
-  gap: 4rem;
 }
 
-/* 각 열 (column) */
+/* hover 시에만 보이도록 */
+@media screen and (min-width: 769px) {
+  /* .hamburger-wrapper {
+    
+  } */
+  .hamburger-wrapper:hover .dropdown-container {
+    display: flex;
+  }
+}
+
+.dropdown-container.show {
+  display: flex;
+}
+
+/* 열(column) 스타일 */
 .dropdown-container ul {
+  min-width: 180px;           /* 각 열의 너비 확보 */
   list-style: none;
   padding: 0;
   margin: 0;
-  min-width: 200px;
 }
 
 .dropdown-container li {
-  margin-bottom: 0.6rem;
+  margin-bottom: 0.7rem;
 }
 
 .dropdown-container li strong {
@@ -91,30 +101,11 @@
 }
 
 .dropdown-container a {
-  text-decoration: none;
   color: #001D3D;
+  text-decoration: none;
+  font-size: 1rem;
 }
 
 .dropdown-container a:hover {
   text-decoration: underline;
-}
-
-/* PC: hover 시 드롭다운 표시 */
-@media screen and (min-width: 769px) {
-  .hamburger-wrapper:hover .dropdown-container {
-    display: flex;
-  }
-}
-
-/* 모바일: show 클래스 있을 때만 보임 */
-@media screen and (max-width: 768px) {
-  .dropdown-container.show {
-    display: flex;
-    flex-direction: column;
-    padding: 1rem;
-  }
-
-  .dropdown-container ul {
-    margin-bottom: 1rem;
-  }
 }
