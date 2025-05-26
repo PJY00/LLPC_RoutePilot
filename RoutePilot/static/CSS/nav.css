@@ -39,6 +39,20 @@
   position: relative;
 }
 
+.menu-icon-wrapper {
+  position: relative;
+  display: inline-block;
+}
+
+.hover-buffer {
+  position: absolute;
+  top: -10px;
+  left: -10px;
+  width: 40px;
+  height: 40px;
+  background: transparent;
+}
+
 /* 드롭다운 기본 숨김 */
 .dropdown-container {
   display: none;
