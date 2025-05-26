@@ -18,9 +18,21 @@
 }
 
 .menu-icon {
-  font-size: 1.6rem;
-  cursor: pointer;
-  color: #001D3D;
+  position: relative;        /* ::after 기준점 설정 */
+  display: inline-block;     /* 패딩/::after 동작 가능하게 */
+  z-index: 10;
+}
+
+.menu-icon::after {
+  content: '';
+  position: absolute;
+  top: 100%;                 /* 아이콘 바로 아래 */
+  left: 0;
+  width: 100%;
+  height: 24px;              /* 하단 hover 인식 범위 */
+  background: transparent;
+  z-index: 5;                /* nav보다 낮거나 같게 */
+  pointer-events: auto;      /* hover 감지 가능하게 */
 }
 
 .hamburger-wrapper {
