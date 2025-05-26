@@ -38,28 +38,45 @@
   display: none;
   position: absolute;
   top: 100%;
-  right: 2rem;
-  background: #f9f9f9;
-  padding: 1rem;
-  border: 1px solid #ccc;
+  left: 0;
+  width: 100%;
+  background-color: white;
+  padding: 2rem 5rem;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  border-top: 2px solid #002366;
   z-index: 1000;
-  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+
+  display: flex;
+  gap: 5rem;
+  justify-content: center;
 }
 
-/* 메뉴 항목 */
+.dropdown-container.show {
+  display: flex;
+}
+
+/* 열(column) 스타일 */
 .dropdown-container ul {
   list-style: none;
   padding: 0;
   margin: 0;
+  min-width: 180px;
 }
+
 .dropdown-container li {
-  margin: 0.5rem 0;
+  margin-bottom: 0.7rem;
 }
+
 .dropdown-container a {
-  text-decoration: none;
   color: #001D3D;
-  font-size: 1.3rem;
+  text-decoration: none;
+  font-size: 1rem;
 }
+
+.dropdown-container a:hover {
+  text-decoration: underline;
+}
+
 
 /* PC 화면: hover 시 드롭다운 열림 */
 @media screen and (min-width: 769px) {
