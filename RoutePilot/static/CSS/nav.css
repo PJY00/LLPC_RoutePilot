@@ -7,14 +7,7 @@
   font-family: Arial, sans-serif;
 }
 
-.navbar-left {
-  display: flex;
-  align-items: center;
-  gap: 2rem;
-}
-
 .navbar-left a {
-  margin-left: 1.5rem;
   text-decoration: none;
   color: #001D3D;
   font-weight: bold;
@@ -24,11 +17,10 @@
 .navbar-right {
   display: flex;
   align-items: center;
-  gap: 1.2rem;
+  gap: 1.5rem;
 }
 
 .navbar-right a {
-  margin-left: 1.5rem;
   text-decoration: none;
   color: #001D3D;
   font-weight: bold;
@@ -36,9 +28,35 @@
 }
 
 .menu-icon {
-  margin-left: 1.3rem;
-  margin-bottom: 0.1rem;
-  color: #001D3D;
-  font-size: 1.5rem;
+  font-size: 1.6rem;
   cursor: pointer;
+  color: #001D3D;
+}
+
+/* 드롭다운 영역 - 기본 숨김 */
+.dropdown-container {
+  display: none;
+  background-color: #f9f9f9;
+  border-top: 1px solid #ccc;
+  padding: 1rem 2rem;
+}
+
+.dropdown-container.show {
+  display: block;
+}
+
+.dropdown-container ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.dropdown-container li {
+  margin: 0.5rem 0;
+}
+
+.dropdown-container a {
+  text-decoration: none;
+  color: #001D3D;
+  font-size: 1.3rem;
 }
