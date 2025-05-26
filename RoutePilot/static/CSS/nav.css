@@ -46,9 +46,9 @@
 .menu-icon::after {
   content: '';
   position: absolute;
-  top: 100%;          /* 바로 아래부터 시작 */
+  top: 90%;          /* 바로 아래부터 시작 */
   left: 0;
-  width: 80%;
+  width: 150%;
   height: 10px;        /* 원하는 hover 거리 */
 }
 
