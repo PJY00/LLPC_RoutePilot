@@ -6,6 +6,8 @@ let routePolylines = [];
 let routeMarkers = [];
 let globalRouteCoords = [];
 let liveRouteLine = null;
+let speedMarker = null;
+
 
 let startLat = null;
 let startLon = null;
@@ -542,13 +544,20 @@ function setupAddressGeocode() {
 
 //여기는 속도를 보기 위해
 
-
 let currentSpeedLimit = null; // 전역 선언
 function fetchSpeedAtClickedLocation(lat, lon) {
     fetch(`/speed?lat=${lat}&lon=${lon}`)
         .then(res => res.json())
         .then(data => {
             const display = document.getElementById("speedDisplay");
+            // 🌐 마커 먼저 찍기
+            if (speedMarker) speedMarker.setMap(null); // 기존 마커 삭제
+            speedMarker = new Tmapv2.Marker({
+                position: new Tmapv2.LatLng(lat, lon),
+                icon: "/static/images/car.png", // ✅ 사용자 지정 이미지 경로
+                iconSize: new Tmapv2.Size(40, 40),     // 너비 x 높이 (px)
+                map: map
+            });
             if (data.speed_start && data.speed_end) {
                 currentSpeedLimit = Math.round((parseInt(data.speed_start) + parseInt(data.speed_end)) / 2);
 
