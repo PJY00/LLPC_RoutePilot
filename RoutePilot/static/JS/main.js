@@ -445,6 +445,7 @@ function getCurrentLocation() {//출발지 지정 onclick과 이어짐
             position: new Tmapv2.LatLng(lat, lon),
             icon: "/static/images/marker.png",
             iconSize: new Tmapv2.Size(24, 24),
+            iconAnchor: new Tmapv2.Point(16, 16),
             map: map
         });
         // 출발지 주소 보여주는 input#start-address만 있으면 OK
