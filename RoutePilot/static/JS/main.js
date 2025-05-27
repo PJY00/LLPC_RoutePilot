@@ -550,12 +550,18 @@ function fetchSpeedAtClickedLocation(lat, lon) {
         .then(res => res.json())
         .then(data => {
             const display = document.getElementById("speedDisplay");
-            // 🌐 마커 먼저 찍기
-            if (speedMarker) speedMarker.setMap(null); // 기존 마커 삭제
-            speedMarker = new Tmapv2.Marker({
+            // 1) 기존 클릭 마커 지우기
+            if (marker_) {
+                marker_.setMap(null);
+                marker_ = null;
+            }
+
+            // 2) 새 아이콘과 크기로 마커 생성
+            marker_ = new Tmapv2.Marker({
                 position: new Tmapv2.LatLng(lat, lon),
-                icon: "/static/images/car.png", // ✅ 사용자 지정 이미지 경로
-                iconSize: new Tmapv2.Size(40, 40),     // 너비 x 높이 (px)
+                icon: "/static/images/car.png",
+                iconSize: new Tmapv2.Size(40, 40),
+                iconAnchor: new Tmapv2.Point(0, 0),
                 map: map
             });
             if (data.speed_start && data.speed_end) {
