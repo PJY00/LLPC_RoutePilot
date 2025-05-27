@@ -541,6 +541,8 @@ function setupAddressGeocode() {
 }
 
 //여기는 속도를 보기 위해
+
+
 let currentSpeedLimit = null; // 전역 선언
 function fetchSpeedAtClickedLocation(lat, lon) {
     fetch(`/speed?lat=${lat}&lon=${lon}`)
@@ -612,11 +614,6 @@ function compareSpeed() {
     }
 }
 
-// 10초마다 갱신
-setInterval(fetchSpeed, 10000);
-
-// 페이지 로드 시 처음 실행
-fetchSpeed();
 
 // 페이지 로드 후 실행
 window.onload = initMapAndWeather;

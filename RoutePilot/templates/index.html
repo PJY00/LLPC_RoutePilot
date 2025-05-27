@@ -48,16 +48,6 @@
   <div class="mb-3">
     <!-- 기존 경로 버튼 -->
     <button class="btn btn-primary" onclick="drawRoute()">경로 보기</button>
-
-    <!-- ⬇️ 테스트용 좌표 입력창 추가됨 -->
-    <div class="mt-3">
-      <label class="form-label">테스트용 좌표 입력</label>
-      <div class="input-group">
-        <input type="number" id="test-lat" class="form-control" placeholder="위도 (lat)" step="any">
-        <input type="number" id="test-lon" class="form-control" placeholder="경도 (lon)" step="any">
-        <button class="btn btn-outline-success" onclick="simulateMockPositionFromInput()">이동</button>
-      </div>
-    </div>
   </div>
 
   <div id="speedInputContainer" style="display:none; margin-top:10px;">
@@ -80,23 +70,9 @@
     const APPKEY = "{{tmap_key}}";
   </script>
 
-  <!-- 테스트용 좌표 입력값 → simulateMockPosition 호출 함수 -->
-  <script>
-    function simulateMockPositionFromInput() {
-      const lat = parseFloat(document.getElementById("test-lat").value);
-      const lon = parseFloat(document.getElementById("test-lon").value);
-      if (!isNaN(lat) && !isNaN(lon)) {
-        simulateMockPosition(lat, lon);
-      } else {
-        alert("위도와 경도를 올바르게 입력해주세요.");
-      }
-    }
-  </script>
-
-  
   <script src="{{ url_for('static', filename='/JS/main.js') }}"></script>
 
-  
+
 </body>
 
 </html>
