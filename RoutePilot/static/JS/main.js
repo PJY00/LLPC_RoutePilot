@@ -4,6 +4,10 @@ let routeLayer;
 let startMarker, endMarker;
 let routePolylines = [];
 let routeMarkers = [];
+let globalRouteCoords = [];
+let liveRouteLine = null;
+let speedMarker = null;
+
 
 let startLat = null;
 let startLon = null;
@@ -129,18 +133,27 @@ function drawFastestRoute(startX, startY, endX, endY, trafficInfo) {
 
 function fitMapToRoute() {
     const bounds = new Tmapv2.LatLngBounds();
-    // 1) 폴리라인 점들
+
     routePolylines.forEach(pl => {
-        pl.getPath().forEach(pt => {
-            bounds.extend(pt);
-        });
+        const path = pl.getPath();
+        // Tmapv2.MVCArray 는 getLength, getAt 메서드가 있음
+        if (typeof path.getLength === 'function' && typeof path.getAt === 'function') {
+            const len = path.getLength();
+            for (let i = 0; i < len; i++) {
+                bounds.extend(path.getAt(i));
+            }
+        } else if (Array.isArray(path)) {
+            // 혹시 순수 배열인 경우도 대비
+            path.forEach(pt => bounds.extend(pt));
+        }
     });
-    // 2) 마커들
+
     if (startMarker) bounds.extend(startMarker.getPosition());
     if (endMarker) bounds.extend(endMarker.getPosition());
-    // 3) 실제 적용
+
     map.fitBounds(bounds);
 }
+
 
 function drawRoute() {
     if (!startMarker || !endMarker) {
@@ -173,6 +186,9 @@ function initMapAndWeather() {
         console.error("Tmapv2가 정의되지 않았습니다.");
         return;
     }
+    // ✅ 제한속도 안내 문구 초기화
+    document.getElementById("speedDisplay").innerText = "지도를 클릭하면 해당 위치의 제한속도 정보가 표시됩니다.";
+
     if (navigator.geolocation) {
         console.log("위치 정보를 요청합니다.");
         navigator.geolocation.getCurrentPosition((pos) => {
@@ -186,6 +202,7 @@ function initMapAndWeather() {
                 height: "500px",
                 zoom: 15
             });
+
             // 날씨 정보 갱신
             updateWeather(lat, lon);
             setInterval(() => updateWeather(lat, lon), 10 * 60 * 1000);
@@ -255,7 +272,12 @@ function resetRouteData() {
 
 // (2) 경로 탐색 → 그리기
 function searchAndDrawRoute(startX, startY, endX, endY, searchOption, trafficInfo) {
+    // 1) 이전 경로/마커 초기화
     resetRouteData();
+
+    // 2) 전역 경로 배열 초기화
+    globalRouteCoords = [];
+
     $.ajax({
         type: "POST",
         url: `https://apis.openapi.sk.com/tmap/routes?version=1&format=json&appKey=${APPKEY}`,
@@ -267,9 +289,8 @@ function searchAndDrawRoute(startX, startY, endX, endY, searchOption, trafficInf
         },
         success: function (res) {
             const feat = res.features;
-            let totalDist = 0;
-            let lastKmMark = 0;
             const bounds = new Tmapv2.LatLngBounds();
+
             feat.forEach(seg => {
                 if (seg.geometry.type === "LineString") {
                     // EPSG3857 → WGS84 변환
@@ -277,22 +298,29 @@ function searchAndDrawRoute(startX, startY, endX, endY, searchOption, trafficInf
                         const p = new Tmapv2.Point(c[0], c[1]);
                         return new Tmapv2.Projection.convertEPSG3857ToWGS84GEO(p);
                     });
-                    // 경로 포인트 모두 bounds에 추가
+
+                    // 3) 전역 경로 좌표에 추가
+                    pts.forEach(pt => globalRouteCoords.push(pt));
+
+                    // 4) 지도 bounds에 추가
                     pts.forEach(pt => bounds.extend(pt));
-                    // 경로 선 그리기
+
+                    // 5) 경로 선 그리기
                     const trafficArr = (trafficInfo === "Y") ? seg.geometry.traffic : [];
                     drawLine(pts, trafficArr);
                 } else {
+                    // 포인트 타입 (출발/도착 마커 등)
                     const p = new Tmapv2.Point(seg.geometry.coordinates[0], seg.geometry.coordinates[1]);
                     const cp = new Tmapv2.Projection.convertEPSG3857ToWGS84GEO(p);
-                    // 마커 좌표도 bounds에 포함
                     bounds.extend(cp);
                 }
             });
-            // 경로 전체가 보이도록 지도 확대/이동
+
+            // 6) 경로 전체가 보이도록 지도 확대/이동
             map.fitBounds(bounds);
             fitMapToRoute();
-            // 요약 정보 출력
+
+            // 7) 요약 정보 출력
             const prop0 = feat[0].properties;
             document.getElementById("route_info").innerText =
                 `🛣 거리: ${(prop0.totalDistance / 1000).toFixed(1)}km | 🕒 ${(prop0.totalTime / 60).toFixed(0)}분`;
@@ -303,6 +331,7 @@ function searchAndDrawRoute(startX, startY, endX, endY, searchOption, trafficInf
         }
     });
 }
+
 
 // (3) POI 마커 추가
 function addPOIMarker(lat, lng, iconUrl, type) {
@@ -319,30 +348,101 @@ function addPOIMarker(lat, lng, iconUrl, type) {
 // (4) 교통정보 반영 폴리라인 그리기
 function drawLine(points, trafficArr) {
     if (!trafficArr || trafficArr.length === 0) {
-        const pl = new Tmapv2.Polyline({ path: points, strokeColor: "#DD0000", strokeWeight: 6, map: map });
+        const pl = new Tmapv2.Polyline({
+            path: points,
+            strokeColor: "#DD0000",
+            strokeWeight: 6,
+            map: map
+        });
+
+        addPolylineClickListener(pl); // 👈 이벤트 등록 함수 호출
         routePolylines.push(pl);
         return;
     }
+
     const colorMap = { 0: "#06050D", 1: "#61AB25", 2: "#FFFF00", 3: "#E87506", 4: "#D61125" };
     let last = 0;
     trafficArr.forEach(seg => {
         const [s, e, idx] = seg;
+
         if (s > last) {
-            const pl0 = new Tmapv2.Polyline({ path: points.slice(last, s), strokeColor: "#06050D", strokeWeight: 6, map: map });
+            const pl0 = new Tmapv2.Polyline({
+                path: points.slice(last, s),
+                strokeColor: "#06050D",
+                strokeWeight: 6,
+                map: map
+            });
+            addPolylineClickListener(pl0); // 👈 이벤트 등록
             routePolylines.push(pl0);
         }
+
         const pl1 = new Tmapv2.Polyline({
             path: points.slice(s, e + 1),
             strokeColor: colorMap[idx] || "#06050D",
-            strokeWeight: 6, map: map
+            strokeWeight: 6,
+            map: map
         });
+        addPolylineClickListener(pl1); // 👈 이벤트 등록
         routePolylines.push(pl1);
         last = e + 1;
     });
+
     if (last < points.length) {
-        const pl2 = new Tmapv2.Polyline({ path: points.slice(last), strokeColor: "#06050D", strokeWeight: 6, map: map });
+        const pl2 = new Tmapv2.Polyline({
+            path: points.slice(last),
+            strokeColor: "#06050D",
+            strokeWeight: 6,
+            map: map
+        });
+        addPolylineClickListener(pl2); // 👈 이벤트 등록
         routePolylines.push(pl2);
     }
+}
+
+let marker_ = null;
+function addPolylineClickListener(pl) {
+    pl.addListener("click", function (evt) {
+        const pathObj = pl.getPath();
+        if (!pathObj || !pathObj.path || pathObj.path.length === 0) {
+            console.error("Polyline 경로가 비어있습니다.");
+            return;
+        }
+
+        const path = pathObj.path;
+
+        // 클릭 이벤트 좌표도 evt.latLng._lat, _lng가 있을 수 있음
+        let clickLat, clickLon;
+        if (evt.latLng) {
+            clickLat = evt.latLng._lat;
+            clickLon = evt.latLng._lng;
+        } else {
+            // evt.latLng 없으면 path 첫 좌표 사용 (임시방편)
+            clickLat = path[0]._lat || path[0].lat;
+            clickLon = path[0]._lng || path[0].lng;
+        }
+
+        console.log("클릭 위치 좌표:", clickLat, clickLon);
+
+        // 기존 마커 있으면 지도에서 제거
+        if (marker_) {
+            marker_.setMap(null);
+            marker_ = null;
+        }
+
+        // 새 마커 생성
+        marker_ = new Tmapv2.Marker({
+            position: new Tmapv2.LatLng(clickLat, clickLon),
+            map: map
+        });
+
+        fetchSpeedAtClickedLocation(clickLat, clickLon);
+
+        // 👉 속도 입력창 표시
+        document.getElementById("speedInputContainer").style.display = "block";
+        document.getElementById("speedResult").innerText = "";
+        document.getElementById("userSpeed").value = "";
+    });
+
 }
 
 function getCurrentLocation() {//출발지 지정 onclick과 이어짐
@@ -361,6 +461,7 @@ function getCurrentLocation() {//출발지 지정 onclick과 이어짐
             position: new Tmapv2.LatLng(lat, lon),
             icon: "/static/images/marker.png",
             iconSize: new Tmapv2.Size(24, 24),
+            iconAnchor: new Tmapv2.Point(16, 16),
             map: map
         });
         // 출발지 주소 보여주는 input#start-address만 있으면 OK
@@ -435,48 +536,99 @@ function setupAddressGeocode() {
             });
             // 6) 지도 중심 이동 & 결과 표시
             map.setCenter(new Tmapv2.LatLng(lat, lon));
-            document.getElementById("result").innerText =
-                `도착지: ${fullAddr} (위경도: ${lat}, ${lon})`;
         })
         .catch((err) => {
             console.error("주소 변환 오류:", err);
-            document.getElementById("result").innerText =
-                "주소 변환 중 오류가 발생했습니다.";
         });
 }
 
 //여기는 속도를 보기 위해
-//현재 위치 10초마다 전달
-function fetchSpeed() {
-    navigator.geolocation.getCurrentPosition(function (position) {
-        const lat = position.coords.latitude;
-        const lon = position.coords.longitude;
-        fetch(`/speed?lat=${lat}&lon=${lon}`)
-            .then(res => res.json())
-            .then(data => {
-                const display = document.getElementById("speedDisplay");
-                if (data.speed_start && data.speed_end) {
-                    display.innerText =
-                        `현재 도로: ${data.road}\n` +
-                        `시점: ${data.start}, 종점: ${data.end}\n` +
-                        `제한속도 (기점 방향): ${data.speed_start} km/h, (종점 방향): ${data.speed_end} km/h`;
-                } else if (data.message) {
-                    display.innerText = data.message;
-                } else {
-                    display.innerText = "제한속도 정보를 찾을 수 없습니다.";
-                }
-            })
-            .catch(err => {
-                document.getElementById("speedDisplay").innerText = '오류: ' + err;
+
+let currentSpeedLimit = null; // 전역 선언
+function fetchSpeedAtClickedLocation(lat, lon) {
+    fetch(`/speed?lat=${lat}&lon=${lon}`)
+        .then(res => res.json())
+        .then(data => {
+            const display = document.getElementById("speedDisplay");
+            // 1) 기존 클릭 마커 지우기
+            if (marker_) {
+                marker_.setMap(null);
+                marker_ = null;
+            }
+
+            // 2) 새 아이콘과 크기로 마커 생성
+            marker_ = new Tmapv2.Marker({
+                position: new Tmapv2.LatLng(lat, lon),
+                icon: "/static/images/car.png",
+                iconSize: new Tmapv2.Size(40, 40),
+                iconAnchor: new Tmapv2.Point(0, 0),
+                map: map
             });
-    });
+            if (data.speed_start && data.speed_end) {
+                currentSpeedLimit = Math.round((parseInt(data.speed_start) + parseInt(data.speed_end)) / 2);
+
+                display.className = "alert alert-info";
+                display.innerText =
+                    `현재 도로: ${data.road}\n` +
+                    `시점: ${data.start}, 종점: ${data.end}\n` +
+                    `제한속도 (기점 방향): ${data.speed_start} km/h, (종점 방향): ${data.speed_end} km/h`;
+
+                // ✅ 경로 시각화 코드 추가
+                if (globalRouteCoords.length) {
+                    let minIdx = 0;
+                    let minDist = Infinity;
+                    globalRouteCoords.forEach((pt, i) => {
+                        const d = calculateDistance(lat, lon, pt._lat, pt._lng);
+                        if (d < minDist) {
+                            minDist = d;
+                            minIdx = i;
+                        }
+                    });
+                    const remaining = globalRouteCoords.slice(0, minIdx + 1);
+                    if (liveRouteLine) liveRouteLine.setMap(null);
+                    liveRouteLine = new Tmapv2.Polyline({
+                        path: remaining,
+                        strokeColor: "#0077FF",
+                        strokeWeight: 6,
+                        iconAnchor: new Tmapv2.Point(16, 16),
+                        map: map
+                    });
+                }
+            } else if (data.message) {
+                display.className = "alert alert-warning";
+                display.innerText = data.message;
+            } else {
+                display.className = "alert alert-danger";
+                display.innerText = "제한속도 정보를 찾을 수 없습니다.";
+            }
+        })
+        .catch(err => {
+            const display = document.getElementById("speedDisplay");
+            display.className = "alert alert-danger";
+            display.innerText = '오류 발생: ' + err;
+        });
 }
 
-// 10초마다 갱신
-setInterval(fetchSpeed, 10000);
 
-// 페이지 로드 시 처음 실행
-fetchSpeed();
+function compareSpeed() {
+    const userSpeed = parseInt(document.getElementById("userSpeed").value);
+    const resultBox = document.getElementById("speedResult");
+
+    if (isNaN(userSpeed)) {
+        resultBox.innerText = "속도를 입력하세요.";
+        resultBox.style.color = "black";
+        return;
+    }
+
+    if (userSpeed > currentSpeedLimit) {
+        resultBox.innerText = `🚨 속도를 낮춰야 합니다. 제한속도: ${currentSpeedLimit}km/h`;
+        resultBox.style.color = "red";
+    } else {
+        resultBox.innerText = "✅ 적절한 속도입니다.";
+        resultBox.style.color = "green";
+    }
+}
+
 
 // 페이지 로드 후 실행
 window.onload = initMapAndWeather;
