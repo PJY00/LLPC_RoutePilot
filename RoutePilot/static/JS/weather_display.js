@@ -1,65 +1,22 @@
 document.addEventListener("DOMContentLoaded", () => {
-    const weatherIcon = document.getElementById("weather-icon");
-    const weatherInfo = document.getElementById("weather-info");
 
-    const weatherIcons = {
-        sunny: "🌞",
-        cloudy: "☁️",
-        rainy: "🌧️",
-        snowy: "❄️",
-        foggy: "🌫️"
-    };
+    const speedDisplay = document.getElementById("speed");
 
-    async function updateWeather(lat, lon) {
-        try {
-            const response = await fetch("/weather", {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json"
-                },
-                body: JSON.stringify({ lat, lon })
-            });
+    let currentSpeed = 0;
 
-            const data = await response.json();
-            const { weather, temperature } = data;
-
-            let condition = "맑음";
-            if (weather.includes("비")) condition = "비";
-            else if (weather.includes("눈")) condition = "눈";
-            else if (weather.includes("구름")) condition = "흐림";
-
-            weatherIcon.textContent = 
-                condition === "비" ? weatherIcons.rainy :
-                condition === "눈" ? weatherIcons.snowy :
-                condition === "흐림" ? weatherIcons.cloudy :
-                weatherIcons.sunny;
-
-            weatherInfo.textContent = `${condition} | ${temperature}°C`;
-        } catch (error) {
-            weatherInfo.textContent = "날씨 정보 로딩 실패";
-        }
-    }
     //실시간 위치 추적
      if (navigator.geolocation) {
         navigator.geolocation.watchPosition(
             (position) => {
-                const lat = position.coords.latitude;
-                const lon = position.coords.longitude;
-                updateWeather(lat, lon);
+                //속도 정보가 있으면 표시시
+                const speed = position.coords.speed || 0;
+                speedDisplay.textContent = 'Speed ${speed} km/h';
             },
             (error) => {
-                weatherInfo.textContent = "위치 추적 실패";
-                console.error("위치 추적 실패", error);
-            },
-            {
-                enableHighAccuracy: true,
-                maximumAge: 10000,
-                timeout: 5000
+                speedDisplay.textContent = "Speed 정보 없음";
             }
         );
-    }
-    //수동으로 날씨 좌표 설정할 경우
-    window.setCoordinates = function(lat, lon){
-        updateWeather(startLat, startLon);
+    } else {
+        speedDisplay.textContent = "Speed 정보 없음";
     }
 });
