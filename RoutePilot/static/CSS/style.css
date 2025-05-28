@@ -1,7 +1,13 @@
 body {
-    background-color: black;
+  margin: 0;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  background-color: white;
+  color: #333;
 }
 
-p {
-    color: white;
+h2 {
+  text-align: left;
+  margin: 2rem 0 1.5rem;
+  font-size: 1.8rem;
+  color: #002c5f;
 }
