@@ -9,8 +9,8 @@ document.addEventListener("DOMContentLoaded", () => {
         navigator.geolocation.watchPosition(
             (position) => {
                 //속도 정보가 있으면 표시시
-                const speed = position.coords.speed || 0;
-                speedDisplay.textContent = `Speed ${speed} km/h`;
+                const speedKmH = Math.round(speed * 3.6);
+                speedDisplay.textContent = `Speed ${speedKmH} km/h`;
             },
             (error) => {
                 speedDisplay.textContent = "Speed 정보 없음";
