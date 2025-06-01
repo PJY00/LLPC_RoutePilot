@@ -7,10 +7,12 @@ import { fetchRouteRisk } from './routeRisk.js';
 import { searchAndDrawRoute } from './routeSearch.js';
 import { resetRouteData } from './routeSearch.js';
 
+let marker_ = null;
+
 // (흔히 사용되는 유틸/전역) calculateDistance, drawLine, fitMapToRoute 등 전역 함수 필요
 // 아래에서는 전역 scope에 이미 선언된 전역 변수(map, startMarker, endMarker 등)를 사용한다고 가정
 
-function drawLine(points, trafficArr) {
+export function drawLine(points, trafficArr) {
     if (!trafficArr || trafficArr.length === 0) {
         const pl = new Tmapv2.Polyline({
             path: points,
@@ -63,7 +65,7 @@ function drawLine(points, trafficArr) {
     }
 }
 
-function addPolylineClickListener(pl) {
+export function addPolylineClickListener(pl) {
     pl.addListener("click", function (evt) {
         const pathObj = pl.getPath();
         const path = pathObj && pathObj.path ? pathObj.path : pathObj;
@@ -157,12 +159,12 @@ export function drawFastestRoute(startX, startY, endX, endY, trafficInfo) {
 
 // 사용자 입력에 따라 경로 그리기
 export function drawRoute() {
-    if (!startMarker || !endMarker) {
+    if (!window.startMarker || !window.endMarker) {
         return alert("지도에서 출발지와 도착지를 먼저 선택하세요.");
     }
     const opt = document.getElementById("selectLevel").value;
     const traf = document.getElementById("trafficInfo").value;
-    const s = startMarker.getPosition(), e = endMarker.getPosition();
+    const s = window.startMarker.getPosition(), e = window.endMarker.getPosition();
 
     if (opt === "0") {
         // 날씨 기준 추천 경로
@@ -174,4 +176,22 @@ export function drawRoute() {
         // 나머지 Tmap 기본 옵션
         searchAndDrawRoute(s._lng, s._lat, e._lng, e._lat, opt, traf);
     }
+}
+
+export function fitMapToRoute() {
+    const bounds = new Tmapv2.LatLngBounds();
+    (window.routePolylines || []).forEach(pl => {
+        const path = pl.getPath();
+        if (typeof path.getLength === 'function' && typeof path.getAt === 'function') {
+            const len = path.getLength();
+            for (let i = 0; i < len; i++) {
+                bounds.extend(path.getAt(i));
+            }
+        } else if (Array.isArray(path)) {
+            path.forEach(pt => bounds.extend(pt));
+        }
+    });
+    if (window.startMarker) bounds.extend(window.startMarker.getPosition());
+    if (window.endMarker) bounds.extend(window.endMarker.getPosition());
+    window.map.fitBounds(bounds);
 }
