@@ -1,2 +1,4 @@
 .env
 (temp)map.html
+.*
+__pycache__
