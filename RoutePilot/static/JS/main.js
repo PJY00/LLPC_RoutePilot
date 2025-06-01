@@ -2,88 +2,103 @@
 // └── 전역 변수 선언 및 모듈 임포트, onload 이벤트 바인딩
 
 import { initMapAndWeather } from './map/mapInit.js';
-import { drawRoute } from './route/routeDraw.js';
+import { drawRoute, drawLine, fitMapToRoute } from './route/routeDraw.js';
+import { calculateDistance } from './utils/distance.js'; // 경로는 실제 파일 위치에 맞게 수정
 
 // ── 전역 변수 선언 (모듈 전반에서 활용) ──
-let map;
-let startMarker, endMarker;  // 출발/도착 마커
-let routePolylines = [];     // 그려진 모든 polyline
-let globalRouteCoords = [];  // 현재 경로 전체 좌표 목록
-let liveRouteLine = null;    // 실시간 주행 경로 시각화
-let marker_ = null;          // polyline 클릭 시 생성되는 임시 마커
-let currentSpeedLimit = null; // 클릭된 위치의 제한속도
+// 반드시 window.<이름> 형태로 선언해야 다른 모듈/HTML 인라인에서도 참조 가능합니다.
+window.map = null;
+window.marker = null;
+window.startMarker = null;
+window.endMarker = null;
+window.routePolylines = [];
+window.routeMarkers = [];
+window.globalRouteCoords = [];
+window.liveRouteLine = null;
+window.marker_ = null;
+window.currentSpeedLimit = null;
+window.startLat = null;
+window.startLon = null;
 
+// 전역으로 노출할 함수들 (HTML 인라인 또는 다른 모듈에서 호출 가능)
 window.getCurrentLocation = getCurrentLocation;
 window.setupAddressGeocode = setupAddressGeocode;
 window.drawRoute = drawRoute;
 window.fetchSpeedAtClickedLocation = fetchSpeedAtClickedLocation;
 window.compareSpeed = compareSpeed;
-window.fitMapToRoute = fitMapToRoute;
+//window.fitMapToRoute = fitMapToRoute;
+window.drawLine = drawLine;  // routeSearch.js 등에서 window.drawLine(...) 호출 가능하게
+// ※ drawLine은 routeDraw.js에서 export된 함수이므로 반드시 import 후 window에 할당해야 합니다.
 
 // Tmap API가 로드된 뒤 호출
 window.onload = () => {
     initMapAndWeather();
 
-    // “경로 그리기” 버튼 ID가 drawRouteBtn 이라고 가정
-    const btn = document.getElementById("drawRouteBtn");
-    if (btn) {
-        btn.addEventListener("click", drawRoute);
+    // “경로 그리기” 버튼 클릭 시 drawRoute 호출
+    const drawBtn = document.getElementById("drawRouteBtn");
+    if (drawBtn) {
+        drawBtn.addEventListener("click", drawRoute);
     }
 
-    // 출발지 버튼 클릭 시 getCurrentLocation() 호출
+    // 출발지 버튼 클릭 시 getCurrentLocation 호출
     const startBtn = document.getElementById("getStartLocationBtn");
     if (startBtn) {
         startBtn.addEventListener("click", getCurrentLocation);
     }
 
-    // 도착지 주소 변환 버튼 클릭 시 setupAddressGeocode() 호출
+    // 도착지 주소 변환 버튼 클릭 시 setupAddressGeocode 호출
     const addrBtn = document.getElementById("geocodeBtn");
     if (addrBtn) {
         addrBtn.addEventListener("click", setupAddressGeocode);
     }
 
-    // 속도 비교 버튼 클릭 시 compareSpeed() 호출
+    // 속도 비교 버튼 클릭 시 compareSpeed 호출
     const speedBtn = document.getElementById("compareSpeedBtn");
     if (speedBtn) {
         speedBtn.addEventListener("click", compareSpeed);
     }
 };
 
-// ── getCurrentLocation, fetchReverseGeocoding, setupAddressGeocode, 
-//     fetchSpeedAtClickedLocation, compareSpeed, fitMapToRoute 등은 원래
-//     글로벌 함수이므로 여기에도 선언하거나 별도 utils 파일로 분리 할 수 있습니다.
+// ── 함수 정의부 ──
 
 function getCurrentLocation() {
     if (!navigator.geolocation) {
         return alert("이 브라우저는 위치 정보를 지원하지 않습니다.");
     }
-    navigator.geolocation.getCurrentPosition(pos => {
-        const lat = pos.coords.latitude;
-        const lon = pos.coords.longitude;
-        startLat = lat;
-        startLon = lon;
+    navigator.geolocation.getCurrentPosition(
+        pos => {
+            const lat = pos.coords.latitude;
+            const lon = pos.coords.longitude;
+            window.startLat = lat;
+            window.startLon = lon;
 
-        if (startMarker) startMarker.setMap(null);
-        startMarker = new Tmapv2.Marker({
-            position: new Tmapv2.LatLng(lat, lon),
-            icon: "/static/images/marker.png",
-            iconSize: new Tmapv2.Size(24, 24),
-            iconAnchor: new Tmapv2.Point(16, 16),
-            map
-        });
-
-        fetchReverseGeocoding(lon, lat)
-            .then(address => {
-                document.getElementById("start-address").value = address;
-            })
-            .catch(err => {
-                console.error("주소 변환 실패:", err);
-                document.getElementById("start-address").value = "주소 조회 실패";
+            // 기존 마커 제거
+            if (window.startMarker) {
+                window.startMarker.setMap(null);
+            }
+            // 새 출발지 마커 생성
+            window.startMarker = new Tmapv2.Marker({
+                position: new Tmapv2.LatLng(lat, lon),
+                icon: "/static/images/marker.png",
+                iconSize: new Tmapv2.Size(24, 24),
+                iconAnchor: new Tmapv2.Point(16, 16),
+                map: window.map
             });
-    }, err => {
-        console.error("위치 접근 실패:", err);
-        alert("위치 정보를 가져오지 못했습니다.");
-    });
+
+            fetchReverseGeocoding(lon, lat)
+                .then(address => {
+                    document.getElementById("start-address").value = address;
+                })
+                .catch(err => {
+                    console.error("주소 변환 실패:", err);
+                    document.getElementById("start-address").value = "주소 조회 실패";
+                });
+        },
+        err => {
+            console.error("위치 접근 실패:", err);
+            alert("위치 정보를 가져오지 못했습니다.");
+        }
+    );
 }
 
 function fetchReverseGeocoding(lon, lat) {
@@ -107,6 +122,12 @@ function fetchReverseGeocoding(lon, lat) {
 }
 
 function setupAddressGeocode() {
+    // 지도 준비 여부 확인
+    if (!window.map) {
+        alert("지도가 아직 준비되지 않았습니다. 잠시 기다린 후 다시 시도하세요.");
+        return;
+    }
+
     const fullAddr = document.getElementById("fullAddr").value.trim();
     if (!fullAddr) {
         alert("도착지 주소를 입력하세요.");
@@ -127,14 +148,19 @@ function setupAddressGeocode() {
             const pt = coords[0];
             const lat = pt.lat || pt.newLat;
             const lon = pt.lon || pt.newLon;
-            if (endMarker) endMarker.setMap(null);
-            endMarker = new Tmapv2.Marker({
+
+            // 기존 도착 마커 제거
+            if (window.endMarker) {
+                window.endMarker.setMap(null);
+            }
+            // 새 도착지 마커 생성
+            window.endMarker = new Tmapv2.Marker({
                 position: new Tmapv2.LatLng(lat, lon),
                 icon: "/static/images/marker.png",
                 iconSize: new Tmapv2.Size(24, 24),
-                map
+                map: window.map
             });
-            map.setCenter(new Tmapv2.LatLng(lat, lon));
+            window.map.setCenter(new Tmapv2.LatLng(lat, lon));
         })
         .catch(err => {
             console.error("주소 변환 오류:", err);
@@ -146,19 +172,24 @@ function fetchSpeedAtClickedLocation(lat, lon) {
         .then(res => res.json())
         .then(data => {
             const display = document.getElementById("speedDisplay");
-            if (marker_) {
-                marker_.setMap(null);
-                marker_ = null;
+            // 기존 클릭 마커 제거
+            if (window.marker_) {
+                window.marker_.setMap(null);
+                window.marker_ = null;
             }
-            marker_ = new Tmapv2.Marker({
+            // 새 속도 마커 생성
+            window.marker_ = new Tmapv2.Marker({
                 position: new Tmapv2.LatLng(lat, lon),
                 icon: "/static/images/car.png",
                 iconSize: new Tmapv2.Size(40, 40),
                 iconAnchor: new Tmapv2.Point(0, 0),
-                map
+                map: window.map
             });
+
             if (data.speed_start && data.speed_end) {
-                currentSpeedLimit = Math.round((parseInt(data.speed_start) + parseInt(data.speed_end)) / 2);
+                window.currentSpeedLimit = Math.round(
+                    (parseInt(data.speed_start) + parseInt(data.speed_end)) / 2
+                );
                 display.className = "alert alert-info";
                 display.innerText =
                     `현재 도로: ${data.road}\n` +
@@ -166,24 +197,24 @@ function fetchSpeedAtClickedLocation(lat, lon) {
                     `제한속도 (기점 방향): ${data.speed_start} km/h, (종점 방향): ${data.speed_end} km/h`;
 
                 // 경로 시각화
-                if (globalRouteCoords.length) {
+                if (window.globalRouteCoords.length) {
                     let minIdx = 0;
                     let minDist = Infinity;
-                    globalRouteCoords.forEach((pt, i) => {
+                    window.globalRouteCoords.forEach((pt, i) => {
                         const d = calculateDistance(lat, lon, pt._lat, pt._lng);
                         if (d < minDist) {
                             minDist = d;
                             minIdx = i;
                         }
                     });
-                    const remaining = globalRouteCoords.slice(0, minIdx + 1);
-                    if (liveRouteLine) liveRouteLine.setMap(null);
-                    liveRouteLine = new Tmapv2.Polyline({
+                    const remaining = window.globalRouteCoords.slice(0, minIdx + 1);
+                    if (window.liveRouteLine) window.liveRouteLine.setMap(null);
+                    window.liveRouteLine = new Tmapv2.Polyline({
                         path: remaining,
                         strokeColor: "#0077FF",
                         strokeWeight: 6,
                         iconAnchor: new Tmapv2.Point(16, 16),
-                        map
+                        map: window.map
                     });
                 }
             } else if (data.message) {
@@ -211,29 +242,11 @@ function compareSpeed() {
         return;
     }
 
-    if (userSpeed > currentSpeedLimit) {
-        resultBox.innerText = `🚨 속도를 낮춰야 합니다. 제한속도: ${currentSpeedLimit}km/h`;
+    if (userSpeed > window.currentSpeedLimit) {
+        resultBox.innerText = `🚨 속도를 낮춰야 합니다. 제한속도: ${window.currentSpeedLimit}km/h`;
         resultBox.style.color = "red";
     } else {
         resultBox.innerText = "✅ 적절한 속도입니다.";
         resultBox.style.color = "green";
     }
-}
-
-function fitMapToRoute() {
-    const bounds = new Tmapv2.LatLngBounds();
-    routePolylines.forEach(pl => {
-        const path = pl.getPath();
-        if (typeof path.getLength === 'function' && typeof path.getAt === 'function') {
-            const len = path.getLength();
-            for (let i = 0; i < len; i++) {
-                bounds.extend(path.getAt(i));
-            }
-        } else if (Array.isArray(path)) {
-            path.forEach(pt => bounds.extend(pt));
-        }
-    });
-    if (startMarker) bounds.extend(startMarker.getPosition());
-    if (endMarker) bounds.extend(endMarker.getPosition());
-    map.fitBounds(bounds);
 }
