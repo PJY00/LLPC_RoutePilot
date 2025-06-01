@@ -2,17 +2,23 @@
 // └── searchAndDrawRoute: 일반 Tmap 경로 검색 후 그리기
 // └── resetRouteData: 기존에 그려진 경로·마커 초기화
 
+import { fitMapToRoute } from './routeDraw.js';
+// 전역(global) 경로 좌표 배열
+window.globalRouteCoords = window.globalRouteCoords || [];
+
 export function resetRouteData() {
-    routePolylines.forEach(pl => pl.setMap(null));
-    routeMarkers.forEach(m => m.setMap(null));
-    routePolylines = [];
-    routeMarkers = [];
+    // 기존에 그렸던 모든 폴리라인과 마커를 지도에서 제거
+    (window.routePolylines || []).forEach(pl => pl.setMap(null));
+    (window.routeMarkers || []).forEach(m => m.setMap(null));
+    // 배열 초기화
+    window.routePolylines = [];
+    window.routeMarkers = [];
 }
 
 export function searchAndDrawRoute(startX, startY, endX, endY, searchOption, trafficInfo) {
     // 1) 이전 경로/마커 초기화
     resetRouteData();
-    globalRouteCoords = [];
+    window.globalRouteCoords = [];
 
     $.ajax({
         type: "POST",
@@ -36,12 +42,12 @@ export function searchAndDrawRoute(startX, startY, endX, endY, searchOption, tra
                     });
 
                     // 전역 경로 좌표에 추가
-                    pts.forEach(pt => globalRouteCoords.push(pt));
+                    pts.forEach(pt => window.globalRouteCoords.push(pt));
                     // bounds 추가
                     pts.forEach(pt => bounds.extend(pt));
                     // 경로 그리기 (교통정보 포함)
                     const trafficArr = (trafficInfo === "Y") ? seg.geometry.traffic : [];
-                    drawLine(pts, trafficArr);
+                    window.drawLine(pts, trafficArr);
                 } else {
                     // 포인트 타입 (출발/도착 지점)
                     const p = new Tmapv2.Point(seg.geometry.coordinates[0], seg.geometry.coordinates[1]);
@@ -51,7 +57,7 @@ export function searchAndDrawRoute(startX, startY, endX, endY, searchOption, tra
             });
 
             // 전체 경로 보이도록 지도 확대/이동
-            map.fitBounds(bounds);
+            window.map.fitBounds(bounds);
             fitMapToRoute();
 
             // 요약정보 출력
