@@ -84,18 +84,6 @@ export function addPolylineClickListener(pl) {
             clickLon = path[0]._lng || path[0].lng;
         }
 
-        // 기존 마커 제거
-        if (marker_) {
-            marker_.setMap(null);
-            marker_ = null;
-        }
-
-        // 새 마커 생성
-        marker_ = new Tmapv2.Marker({
-            position: new Tmapv2.LatLng(clickLat, clickLon),
-            map
-        });
-
         fetchSpeedAtClickedLocation(clickLat, clickLon);
 
         // 속도 입력창 표시
