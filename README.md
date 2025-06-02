@@ -5,12 +5,13 @@
   - [Requirements](#requirements)
   - [How to install](#how-to-install)
 - [How to use](#how-to-use)
-  - [현재 위치 입력 및 현재 위치에서의 날씨 확인](#현재 위치 입력 및 현재 위치에서의 날씨 확인)
-  - [Requirements](#requirements)
-  - [How to install](#how-to-install)
-  - [Purpose](#purpose)
-  - [Requirements](#requirements)
-  - [How to install](#how-to-install)
+  - [현재 위치 입력 및 현재 위치에서의 날씨 확인](#현재-위치-입력-및-현재-위치에서의-날씨-확인)
+  - [출발자와 도착지 입력](#출발자와-도착지-입력)
+  - [탐색 옵션](#탐색-옵션)
+  - [교통정보](#교통정보)
+  - [경로 보기](#경로-보기)
+  - [지도 레벨](#지도-레벨)
+  - [고속도로 제한속도](#고속도로-제한속도)
 - [Version History](#version-history)
 - [Contacts](#contacts)
 - [License](#license)
@@ -55,9 +56,9 @@ pip3 install -r requirements.txt
 ##### 네비게이션 기능 설명
 Route Pilot은 날씨(강수량 및 강설량)기반의 네비게이션을 제공합니다.
 
-해당 네비게이션의 주요 기능들에 관련된 설명들은 아래의 테그들을 누르시면 알맞는 설명을 보실 수 있습니다.
+해당 네비게이션의 주요 기능들에 관련된 설명들은 아래의 목차들을 누르시면 알맞는 설명을 보실 수 있습니다.
 
-- [탐색옵션](#탐색옵션)
+- [탐색 옵션](#탐색-옵션)
 
 ##### 현재 위치 입력 및 현재 위치에서의 날씨 확인
 현재 위치(GPS)를 받아 지도의 기본 화면을 현재 위치로 지정합니다. 또한 현재 위치에서의 강수확률, 강수량, 강설량의 정보를 표시합니다.
