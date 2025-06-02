@@ -1,12 +1,32 @@
-<link rel="stylesheet" href="{{ url_for('static', filename='/CSS/nav.css') }}" />
+<link
+  rel="stylesheet"
+  href="{{ url_for('static', filename='/CSS/nav.css') }}"
+/>
 <nav class="navbar">
   <div class="navbar-left">
     <a href="{{ url_for('index') }}" id="title">RoutePilot</a>
-    <!-- 로고 좀 예쁘게 만들어서 이미지로 대체하는 것도 좋을 듯. -->
   </div>
+
   <div class="navbar-right">
     <a href="{{ url_for('about') }}">About</a>
     <a href="{{ url_for('help') }}">Help</a>
-    <span class="menu-icon">☰</span>
+
+    <!-- 드롭다운 영역 감싸기 -->
+    <div class="hamburger-wrapper" id="hamburgerWrapper">
+      <span class="menu-icon" id="menuIcon">☰</span>
+      <div class="dropdown-container" id="dropdownMenu">
+        <ul>
+          <li><strong>About</strong></li>
+          <li><a href="{{ url_for('about') }}#team">팀원</a></li>
+          <li><a href="{{ url_for('about') }}#lang">사용 언어</a></li>
+          <li><a href="{{ url_for('about') }}#api">사용 API</a></li>
+        </ul>
+        <ul>
+          <li><strong>Help</strong></li>
+          <li><a href="{{ url_for('help') }}#howto">사용 방법</a></li>
+          <li><a href="{{ url_for('help') }}#explain">기능 설명</a></li>
+        </ul>
+      </div>
+    </div>
   </div>
 </nav>

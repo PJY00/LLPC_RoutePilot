@@ -42,3 +42,70 @@
   font-size: 1.5rem;
   cursor: pointer;
 }
+
+.menu-icon::after {
+  content: '';
+  position: absolute;
+  top: 90%;          /* 바로 아래부터 시작 */
+  left: 0;
+  width: 150%;
+  height: 10px;        /* 원하는 hover 거리 */
+}
+
+/* 공통 */
+.dropdown-container {
+  display: none;  /* 기본은 숨김 */
+  position: absolute;
+  top: 100%;
+  left: 0;
+  width: 100%;
+  padding: 2rem 5rem;
+  background-color: white;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  border-top: 2px solid #002366;
+  z-index: 1000;
+  gap: 5rem;
+  justify-content: center;
+}
+
+/* hover 시에만 보이도록 */
+@media screen and (min-width: 769px) {
+  /* .hamburger-wrapper {
+    
+  } */
+  .hamburger-wrapper:hover .dropdown-container {
+    display: flex;
+  }
+}
+
+.dropdown-container.show {
+  display: flex;
+}
+
+/* 열(column) 스타일 */
+.dropdown-container ul {
+  min-width: 180px;           /* 각 열의 너비 확보 */
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.dropdown-container li {
+  margin-bottom: 0.7rem;
+}
+
+.dropdown-container li strong {
+  display: block;
+  margin-bottom: 0.5rem;
+  font-weight: bold;
+}
+
+.dropdown-container a {
+  color: #001D3D;
+  text-decoration: none;
+  font-size: 1rem;
+}
+
+.dropdown-container a:hover {
+  text-decoration: underline;
+}
