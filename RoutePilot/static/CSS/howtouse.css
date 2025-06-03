@@ -27,3 +27,26 @@ section p {
   font-size: 1rem;
   margin-bottom: 1.2rem;
 }
+
+.list {
+  list-style-type: none;
+  padding-left: 0;
+}
+
+.list li {
+  background-color: #f1f3f5;
+  border-radius: 0.125rem;
+  padding: 0.75rem 1rem;
+  margin-bottom: 0.75rem;
+  font-size: 1rem;
+  display: flex;
+  align-items: flex-start;
+  gap: 0.5rem;
+}
+
+ul li strong {
+  display: inline-block;
+  margin-right: 0.3rem;
+  font-weight: 600;
+  color: #222;
+}
