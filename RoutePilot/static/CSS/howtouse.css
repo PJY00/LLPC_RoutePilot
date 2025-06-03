@@ -15,3 +15,15 @@ body {
   box-shadow: 0 0.25rem 0.75rem rgba(0, 0, 0, 0.08);
 }
 
+h2 {
+  font-size: 1.8rem;
+  margin-bottom: 1.2rem;
+  border-bottom: 0.125rem solid #ddd;
+  padding-bottom: 0.5rem;
+  color: #002c5f;
+}
+
+section p {
+  font-size: 1rem;
+  margin-bottom: 1.2rem;
+}
