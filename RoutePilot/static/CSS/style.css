@@ -54,3 +54,19 @@ button.btn:hover {
   padding-top: 1rem;
 }
 
+#weather_info {
+  background-color: #e9f5ff;
+  border: 0.07rem solid #b3daff;
+  padding: 1rem;
+  border-radius: 1rem;
+  text-align: center;
+  font-size: 1rem;
+  color: #005b96;
+}
+
+.alert {
+  font-size: 1rem;
+  text-align: center;
+  margin-top: 1rem;
+  border-radius: 10px;
+}
