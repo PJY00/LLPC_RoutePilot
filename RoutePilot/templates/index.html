@@ -15,7 +15,7 @@
     <script src="https://code.jquery.com/jquery-3.2.1.min.js"></script>
   </head>
 
-  <body class="container mt-3" onload="fetchSpeed()">
+  <body class="container mt-3">
     {% include "nav.html" %}
     <h2>📍 내 위치의 실시간 날씨</h2>
     <div id="weather_info" class="mb-3"></div>
@@ -80,20 +80,32 @@
       </div>
     </div>
 
+    <div id="speedInputContainer" style="display: none; margin-top: 10px">
+      <label>현재 속도 (km/h): </label>
+      <input type="number" id="userSpeed" />
+      <button onclick="compareSpeed()">속도 비교</button>
+      <p id="speedResult" style="margin-top: 5px"></p>
+    </div>
+
     <p id="route_info"></p>
     <div id="map" style="width: 100%; height: 500px"></div>
 
     <div class="mb-3">
-      <div id="speedDisplay" class="alert alert-info">
-        제한속도 정보를 불러오는 중...
+      <div id="speedDisplay" class="alert alert-secondary">
+        지도를 클릭하면 해당 위치의 제한속도 정보가 표시됩니다.
       </div>
     </div>
 
+    <!-- Tmap SDK -->
     <script src="https://apis.openapi.sk.com/tmap/jsv2?version=1&appKey={{ tmap_key }}"></script>
     <script>
       const APPKEY = "{{tmap_key}}";
     </script>
-    <script src="{{ url_for('static', filename='/JS/main.js') }}"></script>
+
+    <script
+      type="module"
+      src="{{ url_for('static', filename='/JS/main.js') }}"
+    ></script>
 
     <footer>
       <p>&copy; 2025 RoutePilot Team. All rights reserved.</p>
