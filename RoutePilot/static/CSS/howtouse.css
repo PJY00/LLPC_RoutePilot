@@ -20,7 +20,7 @@ h2 {
   margin-bottom: 1.2rem;
   border-bottom: 0.125rem solid #ddd;
   padding-bottom: 0.5rem;
-  color: #002c5f;
+  color: black;
 }
 
 section p {
@@ -57,4 +57,27 @@ ul li strong {
   margin-right: 0.3rem;
   font-weight: 600;
   color: #222;
+}
+
+@media (max-width: 768px) {
+    section {
+    padding: 1rem;
+  }
+
+  h2 {
+    font-size: 1.5rem;
+  }
+
+  ul li {
+    font-size: 0.95rem;
+  }
+  
+  .list li {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  ul li strong {
+    margin-bottom: 0.05rem;
+  }
 }
