@@ -28,6 +28,14 @@ section p {
   margin-bottom: 1.2rem;
 }
 
+footer {
+  text-align: center;
+  padding: 1.5rem;
+  background-color: #f1f1f1;
+  color: #777;
+  font-size: 0.9rem;
+}
+
 .list {
   list-style-type: none;
   padding-left: 0;
