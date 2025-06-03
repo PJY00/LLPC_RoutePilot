@@ -29,3 +29,14 @@ input[type="text"], select {
   border-color: #007bff;
   box-shadow: 0 0 0.3125rem rgba(0, 123, 255, 0.25);
 }
+
+button.btn {
+  padding: 0.6rem 1.2rem;
+  border-radius: 0.75rem;
+  font-weight: 500;
+  transition: background-color 0.3s, box-shadow 0.3s;
+}
+
+button.btn:hover {
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.1);
+}
