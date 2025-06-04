@@ -26,6 +26,24 @@ document.addEventListener("DOMContentLoaded", () => {
       return;
     }
     timeout = setTimeout(() => {
-    }, 600);
+      fetch(`/autocomplete?query=${encodeURIComponent(keyword)}`)
+        .then(res => res.json())
+        .then(data => {
+          autocompleteBox.innerHTML = "";
+          data.suggestions.forEach(suggestion => {
+            const li = document.createElement("li");
+            li.textContent = suggestion;
+            li.style.padding = "8px";
+            li.style.cursor = "pointer";
+
+            li.addEventListener("click", () => {
+              input.value = suggestion;
+              autocompleteBox.innerHTML = "";
+            });
+
+            autocompleteBox.appendChild(li);
+          });
+        })
+    }, 300);
   });
 });
