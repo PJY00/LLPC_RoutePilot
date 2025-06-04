@@ -44,6 +44,15 @@ document.addEventListener("DOMContentLoaded", () => {
             autocompleteBox.appendChild(li);
           });
         })
+        .catch(err => {
+          console.error("자동완성 오류:", err);
+        });
     }, 300);
+  });
+
+  document.addEventListener("click", (e) => {
+    if (!autocompleteBox.contains(e.target) && e.target !== input) {
+      autocompleteBox.innerHTML = "";
+    }
   });
 });
