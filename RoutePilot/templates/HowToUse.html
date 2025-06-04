@@ -3,97 +3,72 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link
+      href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css"
+      rel="stylesheet"
+    />
+    <link
+      rel="stylesheet"
+      href="{{ url_for('static', filename='CSS/howtouse.css') }}"
+    />
     <meta name="description" content="RoutePilot 사용법" />
     <title>RoutePilot 사용법</title>
-    <style>
-      body {
-        font-family: Arial, sans-serif;
-        background-color: #f0f4f8;
-        margin: 0;
-        padding: 0;
-        line-height: 1.6;
-      }
-      header {
-        background-color: #001d3d;
-        color: #ffffff;
-        padding: 20px 0;
-        text-align: center;
-      }
-      section {
-        padding: 30px;
-        max-width: 800px;
-        margin: 30px auto;
-        background-color: #ffffff;
-        border-radius: 10px;
-        box-shadow: 0 0 20px rgba(0, 0, 0, 0.1);
-      }
-      h1 {
-        color: #003566;
-      }
-      h2 {
-        color: #001d3d;
-        margin-bottom: 15px;
-      }
-      p,
-      li {
-        margin-bottom: 12px;
-      }
-      ul {
-        list-style-type: decimal;
-        padding-left: 20px;
-      }
-    </style>
   </head>
-  <body>
-    <header>
-      <h1>How To Use</h1>
-    </header>
-
-    <section>
+  <body class="container mt-3">
+    {% include "nav.html" %}
+    <section class="how">
       <h2 id="howto">📝 사용 방법</h2>
       <p>
         RoutePilot은 사용자가 목적지까지 안전하고 효율적으로 이동할 수 있도록
         설계된 네비게이션 서비스입니다. 다음 단계에 따라 쉽게 사용할 수
         있습니다:
       </p>
-      <ul>
+      <ul class="list">
         <li>
-          📍 <strong>출발지와 도착지 입력:</strong> 사용자는 출발지와 도착지를
-          지정할 수 있습니다. (예: 서울 → 부산)
+          <span class="li-head">📍 <strong>출발지와 도착지 입력:</strong></span>
+          사용자는 출발지와 도착지를 지정할 수 있습니다. (예: 서울 → 부산)
         </li>
         <li>
-          ⏰ <strong>출발 시간 지정:</strong> 출발 시간을 선택하여 예상 도착
-          시간을 확인할 수 있습니다.
+          <span class="li-head">⏰ <strong>출발 시간 지정:</strong></span> 출발
+          시간을 선택하여 예상 도착 시간을 확인할 수 있습니다.
         </li>
         <li>
-          🌦 <strong>기상 정보 확인:</strong> 현재 날씨를 기반으로 안전한 경로를
-          추천받을 수 있으며, 위험 지역은 경고가 표시됩니다.
+          <span class="li-head">🌦 <strong>기상 정보 확인:</strong></span> 현재
+          날씨를 기반으로 안전한 경로를 추천받을 수 있으며, 위험 지역은 경고가
+          표시됩니다.
         </li>
         <li>
-          <strong>최적 경로 확인:</strong> 시스템은 최적 경로를 제시하며, 예상
-          도착 시간, 위험 경고, 대체 경로를 제공합니다.
+          <span class="li-head"><strong>최적 경로 확인:</strong></span> 시스템은
+          최적 경로를 제시하며, 예상 도착 시간, 위험 경고, 대체 경로를
+          제공합니다.
         </li>
         <li>
-          <strong>경로 선택 및 안내:</strong> 사용자는 제시된 경로 중 원하는
-          경로를 선택하여 안내를 받을 수 있습니다.
-        </li>
-      </ul>
-      <h2 id="explain">⚡ 기능 설명</h2>
-      <p>RoutePilot은 다음과 같은 주요 기능을 제공합니다:</p>
-      <ul>
-        <li>
-          📌 <strong>위치 기반 경로 탐색:</strong> 사용자 위치를 자동으로
-          감지하여 출발지로 설정할 수 있습니다.
-        </li>
-        <li>
-          🌧 <strong>날씨 감지 경고:</strong> 기상 악화 시 위험 구간을 자동으로
-          경고하며 대체 경로를 제안합니다.
-        </li>
-        <li>
-          🚦 <strong>실시간 교통 반영:</strong> 도로 상황에 따른 경로 최적화를
-          자동으로 수행합
+          <span class="li-head"><strong>경로 선택 및 안내:</strong></span>
+          사용자는 제시된 경로 중 원하는 경로를 선택하여 안내를 받을 수
+          있습니다.
         </li>
       </ul>
     </section>
+    <section class="ex">
+      <h2 id="explain">⚡ 기능 설명</h2>
+      <p>RoutePilot은 다음과 같은 주요 기능을 제공합니다:</p>
+      <ul class="list">
+        <li>
+          <span class="li-head">📌 <strong>위치 기반 경로 탐색:</strong></span>
+          사용자 위치를 자동으로 감지하여 출발지로 설정할 수 있습니다.
+        </li>
+        <li>
+          <span class="li-head">🌧 <strong>날씨 감지 경고:</strong></span> 기상
+          악화 시 위험 구간을 자동으로 경고하며 대체 경로를 제안합니다.
+        </li>
+        <li>
+          <span class="li-head">🚦 <strong>실시간 교통 반영:</strong></span>
+          도로 상황에 따른 경로 최적화를 자동으로 수행합니다.
+        </li>
+      </ul>
+    </section>
+    <footer>
+      <p>&copy; 2025 RoutePilot Team. All rights reserved.</p>
+    </footer>
   </body>
 </html>

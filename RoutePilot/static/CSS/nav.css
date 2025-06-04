@@ -1,3 +1,7 @@
+html, body {
+  overflow-x: hidden;
+}
+
 .navbar {
   display: flex;
   justify-content: space-between;
