@@ -14,4 +14,18 @@ document.addEventListener("DOMContentLoaded", () => {
   autocompleteBox.style.marginTop = "2px";
   autocompleteBox.style.maxHeight = "200px";
   autocompleteBox.style.overflowY = "auto";  
+
+  input.parentNode.style.position = "relative";
+  input.parentNode.appendChild(autocompleteBox);
+
+  input.addEventListener("input", () => {
+    clearTimeout(timeout);
+    const keyword = input.value.trim();
+    if (!keyword) {
+      autocompleteBox.innerHTML = "";
+      return;
+    }
+    timeout = setTimeout(() => {
+    }, 600);
+  });
 });
