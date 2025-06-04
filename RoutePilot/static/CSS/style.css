@@ -155,3 +155,13 @@ button.btn:hover {
   border-radius: 0 0 0.75rem 0.75rem;
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
 }
+
+#autocomplete-results li {
+  padding: 0.75rem 1rem;
+  cursor: pointer;
+  font-size: 0.95rem;
+}
+
+#autocomplete-results li:hover {
+  background-color: white;
+}
