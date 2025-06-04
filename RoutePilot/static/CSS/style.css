@@ -107,6 +107,7 @@ button.btn:hover {
 }
 
 #speedInputContainer label {
+  padding-top: 0.5rem;
   font-weight: 500;
   margin-right: 0.5rem;
 }
@@ -128,4 +129,15 @@ button.btn:hover {
   font-weight: 400;
   font-size: 1rem;
   line-height: 1.5;
+  transition: background-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
+}
+
+#speedInputContainer button:hover {
+  background-color: #5c636a;
+  box-shadow: 0 0.25rem 0.5rem rgba(13, 110, 253, 0.3);
+}
+
+#speedResult {
+  margin-top: 0.5rem;
+  font-size: 1rem;
 }
