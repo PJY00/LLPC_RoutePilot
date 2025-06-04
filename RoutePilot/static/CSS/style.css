@@ -95,3 +95,19 @@ button.btn:hover {
   margin-top: 1rem;
   border-radius: 10px;
 }
+
+#speedInputContainer {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  background-color: white;
+  padding: 1rem;
+  border-radius: 0.75rem;
+  border: 1px solid rgba(0, 0, 0, 0.1);
+  margin-top: 1rem;
+}
+
+#speedInputContainer label {
+  font-weight: 500;
+  margin-right: 0.5rem;
+}
