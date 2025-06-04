@@ -253,15 +253,19 @@ function compareSpeed() {
     })
     .then(res => res.json())
     .then(data => {
+        // 강수량 처리
         const rainStr = data.pcp || "0";
         let rain = parseFloat(rainStr.replace("mm", "").trim());
         if (isNaN(rain)) rain = 0;
 
-        // 강수량 기준 감속 비율
+        // 적설량 처리
+        const snowStr = data.sno || "0";
+        let snow = parseFloat(snowStr.replace("cm", "").trim());
+        if (isNaN(snow)) snow = 0;
+
+        // 감속 비율 결정 (눈 > 비 우선 적용)
         let reduction = 0;
-        if (rain >= 10) reduction = 0.3;
-        else if (rain >= 5) reduction = 0.2;
-        else if (rain >= 1) reduction = 0.1;
+        let conditionMsg = "";
 
         const originalLimit = window.currentSpeedLimit;
         const recommended = Math.round(originalLimit * (1 - reduction));
