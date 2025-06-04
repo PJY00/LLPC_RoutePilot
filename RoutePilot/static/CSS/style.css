@@ -33,6 +33,10 @@ input[type="text"], select {
   margin-bottom: 2rem;
 }
 
+.enter-address .col-md-6 {
+  position: relative;
+}
+
 .enter-address button{
     margin-right: 0.3rem;
 }
@@ -140,4 +144,14 @@ button.btn:hover {
 #speedResult {
   margin-top: 0.5rem;
   font-size: 1rem;
+}
+
+#autocomplete-results {
+  position: absolute;
+  background-color: white;
+  border: 1px solid #ccc;
+  padding: 0;
+  margin: 0.25rem 0 0;
+  border-radius: 0 0 0.75rem 0.75rem;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
 }
