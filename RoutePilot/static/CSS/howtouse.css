@@ -1,42 +1,94 @@
+html, body {
+  overflow-x: hidden;
+}
+
 body {
-    font-family: Arial, sans-serif;
-    background-color: #f0f4f8;
-    margin: 0;
-    padding: 0;
-    line-height: 1.6;
+  margin: 0;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  background-color: #f4f6f8;
+  color: #333;
+  line-height: 1.6;
 }
 
-header {
-    background-color: #001D3D;
-    color: #FFFFFF;
-    padding: 20px 0;
-    text-align: center;
-}
-
-section {
-    padding: 30px;
-    max-width: 800px;
-    margin: 30px auto;
-    background-color: #FFFFFF;
-    border-radius: 10px;
-    box-shadow: 0 0 20px rgba(0, 0, 0, 0.1);
-}
-
-h1 {
-    color: #003566;
+.how, .ex {
+  max-width: 900px;
+  margin: 2rem auto;
+  padding: 2rem;
+  background-color: white;
+  border-radius: 0.75rem;
+  box-shadow: 0 0.25rem 0.75rem rgba(0, 0, 0, 0.08);
 }
 
 h2 {
-    color: #001D3D;
-    margin-bottom: 15px;
+  font-size: 1.8rem;
+  margin-bottom: 1.2rem;
+  border-bottom: 0.125rem solid #ddd;
+  padding-bottom: 0.5rem;
+  color: black;
 }
 
-p,
-li {
-    margin-bottom: 12px;
+section p {
+  font-size: 1rem;
+  margin-bottom: 1.2rem;
 }
 
-ul {
-    list-style-type: decimal;
-    padding-left: 20px;
+footer {
+  text-align: center;
+  padding: 1.5rem;
+  background-color: #f1f1f1;
+  color: #777;
+  font-size: 0.9rem;
+}
+
+.list {
+  list-style-type: none;
+  padding-left: 0;
+}
+
+.list li {
+  background-color: #f1f3f5;
+  border-radius: 0.125rem;
+  padding: 0.75rem 1rem;
+  margin-bottom: 0.75rem;
+  font-size: 1rem;
+  display: flex;
+  align-items: flex-start;
+  gap: 0.5rem;
+}
+
+ul li strong {
+  display: inline-block;
+  margin-right: 0.3rem;
+  font-weight: 600;
+  color: #222;
+}
+
+@media (max-width: 768px) {
+    section {
+    padding: 1rem;
+  }
+
+  h2 {
+    font-size: 1.5rem;
+  }
+
+  ul li {
+    font-size: 0.95rem;
+  }
+
+  .list li {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .li-head {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  white-space: nowrap;
+  }
+
+  ul li strong {
+    margin-bottom: 0.05rem;
+  }
 }

@@ -14,6 +14,35 @@ KAKAO_REST_KEY = os.getenv("KAKAO_REST_KEY")
 print("✅ KMA_KEY:", KMA_KEY)
 print("✅ TMAP_KEY:", TMAP_KEY)
 
+@app.route("/autocomplete")
+def autocomplete():
+    #주소 자동완성 함수
+    query = request.args.get("query")
+    if not query:
+        return jsonify({"suggestions": []})
+  # 또는 환경변수로 불러오기
+    url = (
+        "https://apis.openapi.sk.com/tmap/pois?"
+        f"version=1&searchKeyword={query}&resCoordType=WGS84GEO&reqCoordType=WGS84GEO&count=10"
+        f"&appKey={TMAP_KEY}"
+    )
+
+    try:
+        res = requests.get(url)
+        res.raise_for_status()
+        data = res.json()
+        items = data.get("searchPoiInfo", {}).get("pois", {}).get("poi", [])
+        suggestions = [
+            f"{item.get('upperAddrName', '')} {item.get('middleAddrName', '')} "
+            f"{item.get('lowerAddrName', '')} {item.get('name', '')}".strip()
+            for item in items
+        ]
+        return jsonify({"suggestions": suggestions})
+    except Exception as e:
+        print("자동완성 API 오류:", e)
+        return jsonify({"suggestions": [], "error": str(e)})
+
+
 def load_speed_data():
     """
     data/speed_data.csv 파일을 읽어 구간별 속도 및 좌표 정보를 로드합니다.
