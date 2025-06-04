@@ -251,17 +251,37 @@ function compareSpeed() {
             lon: window.marker_?.getPosition()._lng
         })
     })
+    .then(res => res.json())
+    .then(data => {
+        const rainStr = data.pcp || "0";
+        let rain = parseFloat(rainStr.replace("mm", "").trim());
+        if (isNaN(rain)) rain = 0;
+
+        // 강수량 기준 감속 비율
+        let reduction = 0;
+        if (rain >= 10) reduction = 0.3;
+        else if (rain >= 5) reduction = 0.2;
+        else if (rain >= 1) reduction = 0.1;
+
+        const originalLimit = window.currentSpeedLimit;
+        const recommended = Math.round(originalLimit * (1 - reduction));
+
+        const msg =
+            `현재 강수량은 ${rainStr}입니다. ` +
+            (reduction > 0
+                ? `제한속도 ${originalLimit}km/h에서 ${recommended}km/h로 감속을 권장합니다.`
+                : `현재 강수량이 거의 없어 제한속도 ${originalLimit}km/h를 기준으로 판단합니다.`);
+        if (userSpeed > recommended) {
+            resultBox.innerText = `🚨 ${msg} 현재 속도가 너무 빠릅니다.`;
+            resultBox.style.color = "red";
+        } else {
+            resultBox.innerText = `✅ ${msg} 현재 속도는 적절합니다.`;
+            resultBox.style.color = "green";
+        }
+    })
     .catch(err => {
         console.error("날씨 데이터 오류:", err);
         resultBox.innerText = "날씨 정보를 가져오지 못했습니다.";
         resultBox.style.color = "black";
     });
-
-    if (userSpeed > window.currentSpeedLimit) {
-        resultBox.innerText = `🚨 속도를 낮춰야 합니다. 제한속도: ${window.currentSpeedLimit}km/h`;
-        resultBox.style.color = "red";
-    } else {
-        resultBox.innerText = "✅ 적절한 속도입니다.";
-        resultBox.style.color = "green";
-    }
 }
