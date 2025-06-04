@@ -283,17 +283,18 @@ function compareSpeed() {
             reduction = 0.1;
             conditionMsg = `강수량 ${rainStr}로 인해`;
         } else {
-            conditionMsg = `날씨가 양호하여`;
+            conditionMsg = `날씨가 양호하므로`;
         }
 
         const originalLimit = window.currentSpeedLimit;
         const recommended = Math.round(originalLimit * (1 - reduction));
 
-        const msg =
-            `현재 강수량은 ${rainStr}입니다. ` +
-            (reduction > 0
-                ? `제한속도 ${originalLimit}km/h에서 ${recommended}km/h로 감속을 권장합니다.`
-                : `현재 강수량이 거의 없어 제한속도 ${originalLimit}km/h를 기준으로 판단합니다.`);
+        let msg = "";
+        if (reduction === 0) {
+            msg = `날씨가 양호하므로 제한속도 ${originalLimit}km/h를 준수하세요.`;
+        } else {
+            msg = `${conditionMsg} 제한속도 ${originalLimit}km/h에서 ${recommended}km/h로 감속을 권장합니다.`;
+        }
         if (userSpeed > recommended) {
             resultBox.innerText = `🚨 ${msg} 현재 속도가 너무 빠릅니다.`;
             resultBox.style.color = "red";
