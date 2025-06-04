@@ -104,9 +104,11 @@ Route Pilot은 한국도로공사에서 제공하는 고속도로에서의 제�
 
 #### NAV바
 ![프로젝트 로고](RoutePilot/static/images/RPlogo.png)
+
 RoutePilot아이콘을 누르면 네비게이션을 보여주는 페이지(이하 main페이지라고 서술)로 이동 가능합니다. 이동할 때 네비게이션의 기능은 초기화되니 주의해주세요.
 
 ![dropdown](RoutePilot/static/images/navbar.png)
+
 Dropdown기능을 이용하여 about페이지와 help페이지에 어떤 요소들이 있는지 한 눈에 볼 수 있도록 구성하였습니다.
 
 #### About페이지
