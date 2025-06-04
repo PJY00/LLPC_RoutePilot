@@ -267,6 +267,25 @@ function compareSpeed() {
         let reduction = 0;
         let conditionMsg = "";
 
+        if (snow >= 5) {
+            reduction = 0.4;
+            conditionMsg = `적설량 ${snowStr}로 인해`;
+        } else if (snow >= 1) {
+            reduction = 0.25;
+            conditionMsg = `적설량 ${snowStr}로 인해`;
+        } else if (rain >= 10) {
+            reduction = 0.3;
+            conditionMsg = `강수량 ${rainStr}로 인해`;
+        } else if (rain >= 5) {
+            reduction = 0.2;
+            conditionMsg = `강수량 ${rainStr}로 인해`;
+        } else if (rain >= 1) {
+            reduction = 0.1;
+            conditionMsg = `강수량 ${rainStr}로 인해`;
+        } else {
+            conditionMsg = `날씨가 양호하여`;
+        }
+
         const originalLimit = window.currentSpeedLimit;
         const recommended = Math.round(originalLimit * (1 - reduction));
 
