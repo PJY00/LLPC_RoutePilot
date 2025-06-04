@@ -27,6 +27,21 @@ def autocomplete():
         f"&appKey={TMAP_KEY}"
     )
 
+    try:
+        res = requests.get(url)
+        res.raise_for_status()
+        data = res.json()
+        items = data.get("searchPoiInfo", {}).get("pois", {}).get("poi", [])
+        suggestions = [
+            f"{item.get('upperAddrName', '')} {item.get('middleAddrName', '')} "
+            f"{item.get('lowerAddrName', '')} {item.get('name', '')}".strip()
+            for item in items
+        ]
+        return jsonify({"suggestions": suggestions})
+    except Exception as e:
+        print("자동완성 API 오류:", e)
+        return jsonify({"suggestions": [], "error": str(e)})
+
 
 def load_speed_data():
     """
