@@ -242,11 +242,70 @@ function compareSpeed() {
         return;
     }
 
-    if (userSpeed > window.currentSpeedLimit) {
-        resultBox.innerText = `🚨 속도를 낮춰야 합니다. 제한속도: ${window.currentSpeedLimit}km/h`;
-        resultBox.style.color = "red";
-    } else {
-        resultBox.innerText = "✅ 적절한 속도입니다.";
-        resultBox.style.color = "green";
-    }
+    // 날씨 정보 가져오기 (현재 클릭 위치 기준)
+    fetch("/weather", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+            lat: window.marker_?.getPosition()._lat,
+            lon: window.marker_?.getPosition()._lng
+        })
+    })
+    .then(res => res.json())
+    .then(data => {
+        // 강수량 처리
+        const rainStr = data.pcp || "0";
+        let rain = parseFloat(rainStr.replace("mm", "").trim());
+        if (isNaN(rain)) rain = 0;
+
+        // 적설량 처리
+        const snowStr = data.sno || "0";
+        let snow = parseFloat(snowStr.replace("cm", "").trim());
+        if (isNaN(snow)) snow = 0;
+
+        // 감속 비율 결정 (눈 > 비 우선 적용)
+        let reduction = 0;
+        let conditionMsg = "";
+
+        if (snow >= 5) {
+            reduction = 0.4;
+            conditionMsg = `적설량 ${snowStr}로 인해`;
+        } else if (snow >= 1) {
+            reduction = 0.25;
+            conditionMsg = `적설량 ${snowStr}로 인해`;
+        } else if (rain >= 10) {
+            reduction = 0.3;
+            conditionMsg = `강수량 ${rainStr}로 인해`;
+        } else if (rain >= 5) {
+            reduction = 0.2;
+            conditionMsg = `강수량 ${rainStr}로 인해`;
+        } else if (rain >= 1) {
+            reduction = 0.1;
+            conditionMsg = `강수량 ${rainStr}로 인해`;
+        } else {
+            conditionMsg = `날씨가 양호하므로`;
+        }
+
+        const originalLimit = window.currentSpeedLimit;
+        const recommended = Math.round(originalLimit * (1 - reduction));
+
+        let msg = "";
+        if (reduction === 0) {
+            msg = `날씨가 양호하므로 제한속도 ${originalLimit}km/h를 준수하세요.`;
+        } else {
+            msg = `${conditionMsg} 제한속도 ${originalLimit}km/h에서 ${recommended}km/h로 감속을 권장합니다.`;
+        }
+        if (userSpeed > recommended) {
+            resultBox.innerText = `🚨 ${msg} 현재 속도가 너무 빠릅니다.`;
+            resultBox.style.color = "red";
+        } else {
+            resultBox.innerText = `✅ ${msg} 현재 속도는 적절합니다.`;
+            resultBox.style.color = "green";
+        }
+    })
+    .catch(err => {
+        console.error("날씨 데이터 오류:", err);
+        resultBox.innerText = "날씨 정보를 가져오지 못했습니다.";
+        resultBox.style.color = "black";
+    });
 }

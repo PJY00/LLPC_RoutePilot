@@ -39,6 +39,7 @@
             placeholder="도착지 주소 입력"
           />
         </div>
+        <p id="result" class="text-danger mt-1" style="font-size: 0.9rem"></p>
       </div>
 
       <div class="mb-3">
@@ -105,6 +106,10 @@
     <script
       type="module"
       src="{{ url_for('static', filename='/JS/main.js') }}"
+    ></script>
+    <script
+      type="module"
+      src="{{ url_for('static', filename='/JS/address.js') }}"
     ></script>
 
     <footer>
