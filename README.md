@@ -88,7 +88,9 @@ Route Pilot은 날씨(강수량 및 강설량)기반의 네비게이션을 제�
 <img src="RoutePilot/static/images/end-map.png" width="340">
 
 
-* **도착지 적용** : 도착지 주소 입력란에 도로명 주소 혹은 일반 주소(예-서울시청)를 입력하고 도착지 적용 버튼 클릭하면 도착지로 해당 주소가 도착지로 설정됩니다. 도착지로 설정이 되면 해당 주소에 마커가 찍히며 주소지로 화면이 이동됩니다.
+* **도착지 적용** : 도착지 주소 입력란에 도로명 주소 혹은 일반 주소(예-서울시청)를 입력하고 도착지 적용 버튼 클릭하면 도착지로 해당 주소가 도착지로 설정됩니다. 도착지로 설정이 되면 해당 주소에 마커가 찍히며 주소지로 화면이 이동됩니다. 아래의 사진과 같이 주소 자동 완성 기능이 추가되어있다.
+
+<img src="https://private-user-images.githubusercontent.com/163852701/451348776-4c1319ba-f17c-41fb-bb38-58035b744334.png?jwt=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJnaXRodWIuY29tIiwiYXVkIjoicmF3LmdpdGh1YnVzZXJjb250ZW50LmNvbSIsImtleSI6ImtleTUiLCJleHAiOjE3NDkxMDA1NDIsIm5iZiI6MTc0OTEwMDI0MiwicGF0aCI6Ii8xNjM4NTI3MDEvNDUxMzQ4Nzc2LTRjMTMxOWJhLWYxN2MtNDFmYi1iYjM4LTU4MDM1Yjc0NDMzNC5wbmc_WC1BbXotQWxnb3JpdGhtPUFXUzQtSE1BQy1TSEEyNTYmWC1BbXotQ3JlZGVudGlhbD1BS0lBVkNPRFlMU0E1M1BRSzRaQSUyRjIwMjUwNjA1JTJGdXMtZWFzdC0xJTJGczMlMkZhd3M0X3JlcXVlc3QmWC1BbXotRGF0ZT0yMDI1MDYwNVQwNTEwNDJaJlgtQW16LUV4cGlyZXM9MzAwJlgtQW16LVNpZ25hdHVyZT0xY2Q4ZGMyNTdmNGE2YjFjZGM4MzJkNDhjZDY5Mzk3ODA0MjVkYjU4YjAzOTMzNzE0Y2UxMzcwYmRmNTc2MzJlJlgtQW16LVNpZ25lZEhlYWRlcnM9aG9zdCJ9.QB9KEWeC9x6EU6yoVy50hWL0YDWZ4cmy31UMsUnr-MU" width="400">
 
 ##### 탐색 옵션
 ![option](RoutePilot/static/images/option.png)
@@ -122,7 +124,7 @@ Route Pilot은 날씨(강수량 및 강설량)기반의 네비게이션을 제�
 ![overs](RoutePilot/static/images/overspeed.png)
 ![corrects](RoutePilot/static/images/correctspeed.png)
 
-Route Pilot은 한국도로공사에서 제공하는 고속도로에서의 제한속도를 제공합니다. 표시된 경로 위를 클릭했을 때, 만약 클릭한 위치가 고속도로 위라면 해당 고속도로의 제한속도를 지도 하단에 제공합니다. 또한 이 기능을 시험할 수 있도록 클릭했을 때 지도 상단에 현재속도를 사용자가 지정할 수 있도록 해 두었습니다. 만약 사용자가 입력한 속도가 제한속도보다 높다면 경고의 메시지를, 적절한 속도라면 확인의 메시지를 제공합니다.
+Route Pilot은 한국도로공사에서 제공하는 고속도로에서의 제한속도를 제공합니다. 표시된 경로 위를 클릭했을 때, 만약 클릭한 위치가 고속도로 위라면 해당 고속도로의 제한속도를 지도 하단에 제공합니다. 또한 이 기능을 시험할 수 있도록 클릭했을 때 지도 상단에 현재속도를 사용자가 지정할 수 있도록 해 두었습니다. 만약 사용자가 입력한 속도가 제한속도보다 높다면 경고의 메시지를, 적절한 속도라면 확인의 메시지를 제공합니다. 강수량 적설량에 따라 감속량이 조절된다.
 
 ##### 경로에서의 현재 위치 표시
 자동차 아이콘이 클릭한 위치에 찍히며 해당 위치에 도달하기 위해 지나갈 경로를 지도에 표시합니다. 해당 기능은 고속도로 제한 속도의 기능에 부가적인 기능으로 추가하였습니다.
@@ -137,13 +139,11 @@ RoutePilot아이콘을 누르면 네비게이션을 보여주는 페이지(이�
 Dropdown기능을 이용하여 about페이지와 help페이지에 어떤 요소들이 있는지 한 눈에 볼 수 있도록 구성하였습니다.
 
 #### About페이지
-![about](RoutePilot/static/images/aboutpage.png)
 <img src="RoutePilot/static/images/aboutpage.png" width="450">
 
 팀원들의 깃헙 페이지를 접속할수 있도록 연동하였습니다. 프로젝트를 작성한 팀원들의 다른 레포지토리를 보고싶다면 클릭하세요. 또한 프로젝트를 소개 내용을 해당 페이지가 포함하고 있습니다. 이 외에도 사용한 언어와 API내용 등을 포함하고 있으니 관심 있으시다면 구경하세요.
 
 #### Help페이지
-![help](RoutePilot/static/images/helppage.png)
 <img src="RoutePilot/static/images/helppage.png" width="450">
 
 Route Pilot 사용에 대한 정보가 간략히 나와있습니다.
