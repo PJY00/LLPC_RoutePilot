@@ -56,6 +56,8 @@ pip3 install -r requirements.txt
 ```
 ---
 
+* Deployment
+
 ### How to use
 
 #### 네비게이션 기능 설명
@@ -72,31 +74,54 @@ Route Pilot은 날씨(강수량 및 강설량)기반의 네비게이션을 제�
   - [경로에서의 현재 위치 표시](#경로에서의-현재-위치-표시)
 
 ##### 현재 위치 입력 및 현재 위치에서의 날씨 확인
+  ![nowpoint](RoutePilot/static/images/nowstatus.png)
+
 현재 위치(GPS)를 받아 지도의 기본 화면을 현재 위치로 지정합니다. 또한 현재 위치에서의 강수확률, 강수량, 강설량의 정보를 표시합니다.
 
 ##### 출발자와 도착지 입력
-* 현재 위치를 출발지로 : 클릭하면 현재 위치를 출발지로 설정합니다. 동시에 출발 주소란에 현재 위치의 도로명 주소가 입력됩니다. 출발지에 마커가 찍히며 해당 마커의 밑에는 현재 위치의 강수 확률이 이모티콘으로 작게 나타납니다.
-* 도착지 적용 : 도착지 주소 입력란에 도로명 주소 혹은 일반 주소(예-서울시청)를 입력하고 도착지 적용 버튼 클릭하면 도착지로 해당 주소가 도착지로 설정됩니다. 도착지로 설정이 되면 해당 주소에 마커가 찍히며 주소지로 화면이 이동됩니다.
+![start-1](RoutePilot/static/images/start-click.png)
+![start-2](RoutePilot/static/images/start-map.png)
+
+* **현재 위치를 출발지로** : 클릭하면 현재 위치를 출발지로 설정합니다. 동시에 출발 주소란에 현재 위치의 도로명 주소가 입력됩니다. 출발지에 마커가 찍히며 해당 마커의 밑에는 현재 위치의 강수 확률이 이모티콘으로 작게 나타납니다.
+
+![end-1](RoutePilot/static/images/end-click.png)
+<img src="RoutePilot/static/images/end-map.png" width="340">
+
+
+* **도착지 적용** : 도착지 주소 입력란에 도로명 주소 혹은 일반 주소(예-서울시청)를 입력하고 도착지 적용 버튼 클릭하면 도착지로 해당 주소가 도착지로 설정됩니다. 도착지로 설정이 되면 해당 주소에 마커가 찍히며 주소지로 화면이 이동됩니다.
 
 ##### 탐색 옵션
+![option](RoutePilot/static/images/option.png)
+
+
 탐색 옵션에서는 추천경로와 최소시간 경로 중 원하는 옵션을 사용자가 선택할수 있습니다.
 
 * 교통최적+추천 - 출발지에서 도착지로 향하는 경로 중 강수량이 최대한 적은 경로를 안내합니다. 시간이 다소 걸릴 수 있습니다.
 * 교통최적+최소시간 - 강수량(강설량)은 무시하고 도착지에서 출발지로 향하는 경로 중 가장 시간이 적게 걸리는 경로를 안내합니다.
 
 ##### 교통정보
+![tinfo](RoutePilot/static/images/trafficinfo.png)
+
+
 교통정보는 포함과 미포함을 사용자가 선택할 수 있습니다.
 
 * 포함 - 경로(폴리라인)에 실시간 교통정보를 확인 할 수 있습니다. 초록색은 원활, 노랑색은 보통, 빨간색은 혼잡을 나타냅니다.
 * 미포람 - 경로에 교통정보를 나타내지 않고 붉은 색으로만 경로를 표시합니다.
 
 ##### 경로 보기
+![routemap](RoutePilot/static/images/routemap.png)
+
+
 경로보기 버튼을 누르면 사용자가 선택한 탐색옵션과 교통정보를 토대로 경로 탐색 및 교통정보 처리를 실시합니다. 한 지도 화면 안에 모든 경로가 포함됩니다.
 
 ##### 지도 레벨
 사용자가 임의로 확대 및 축소할 수 있습니다. 또한 지도를 이동하는 등의 보편적인 지도 기능 전반을 사용할 수 있습니다.
 
 ##### 고속도로 제한속도
+![mapspeed](RoutePilot/static/images/mapspeed.png)
+![overs](RoutePilot/static/images/overspeed.png)
+![corrects](RoutePilot/static/images/correctspeed.png)
+
 Route Pilot은 한국도로공사에서 제공하는 고속도로에서의 제한속도를 제공합니다. 표시된 경로 위를 클릭했을 때, 만약 클릭한 위치가 고속도로 위라면 해당 고속도로의 제한속도를 지도 하단에 제공합니다. 또한 이 기능을 시험할 수 있도록 클릭했을 때 지도 상단에 현재속도를 사용자가 지정할 수 있도록 해 두었습니다. 만약 사용자가 입력한 속도가 제한속도보다 높다면 경고의 메시지를, 적절한 속도라면 확인의 메시지를 제공합니다.
 
 ##### 경로에서의 현재 위치 표시
@@ -107,14 +132,20 @@ Route Pilot은 한국도로공사에서 제공하는 고속도로에서의 제�
 
 RoutePilot아이콘을 누르면 네비게이션을 보여주는 페이지(이하 main페이지라고 서술)로 이동 가능합니다. 이동할 때 네비게이션의 기능은 초기화되니 주의해주세요.
 
-![dropdown](RoutePilot/static/images/navbar.png)
+<img src="RoutePilot/static/images/navbar.png" width="300">
 
 Dropdown기능을 이용하여 about페이지와 help페이지에 어떤 요소들이 있는지 한 눈에 볼 수 있도록 구성하였습니다.
 
 #### About페이지
+![about](RoutePilot/static/images/aboutpage.png)
+<img src="RoutePilot/static/images/aboutpage.png" width="450">
+
 팀원들의 깃헙 페이지를 접속할수 있도록 연동하였습니다. 프로젝트를 작성한 팀원들의 다른 레포지토리를 보고싶다면 클릭하세요. 또한 프로젝트를 소개 내용을 해당 페이지가 포함하고 있습니다. 이 외에도 사용한 언어와 API내용 등을 포함하고 있으니 관심 있으시다면 구경하세요.
 
 #### Help페이지
+![help](RoutePilot/static/images/helppage.png)
+<img src="RoutePilot/static/images/helppage.png" width="450">
+
 Route Pilot 사용에 대한 정보가 간략히 나와있습니다.
 
 ---
@@ -128,11 +159,11 @@ Route Pilot 사용에 대한 정보가 간략히 나와있습니다.
 
 박지영(팀장) - kdio@chungbuk.ac.kr
 
- : CSS, NAV바, 기초 스켈레톤 구조, 오류 수정
+ : CSS, NAV바, 기초 스켈레톤 구조, [주소 자동완성 리스트, 강수량에 따른 속도 감속 권장] 기능 구현, 오류 수정
 
 최희진 - osislanc2918@gmail.com
 
- : [현재 위치 입력 및 현재 위치에서의 날씨 확인, 출발자와 도착지 입력, 탐색 옵션, 교통정보, 경로 보기, 지도 레벨, 고속도로 제한속도, 경로에서의 현재 위치 표시]기능 구현, 코드 통합, 오류 수정, README문서 정리리
+ : [현재 위치 입력 및 현재 위치에서의 날씨 확인, 출발자와 도착지 입력, 탐색 옵션, 교통정보, 경로 보기, 지도 레벨, 고속도로 제한속도, 경로에서의 현재 위치 표시] 기능 구현, 코드 통합, 오류 수정, README문서 정리
 
 이진 - leejin3064@gmail.com
 
