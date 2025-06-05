@@ -242,6 +242,21 @@ function compareSpeed() {
         return;
     }
 
+    // 날씨 정보 가져오기 (현재 클릭 위치 기준)
+    fetch("/weather", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+            lat: window.marker_?.getPosition()._lat,
+            lon: window.marker_?.getPosition()._lng
+        })
+    })
+    .catch(err => {
+        console.error("날씨 데이터 오류:", err);
+        resultBox.innerText = "날씨 정보를 가져오지 못했습니다.";
+        resultBox.style.color = "black";
+    });
+
     if (userSpeed > window.currentSpeedLimit) {
         resultBox.innerText = `🚨 속도를 낮춰야 합니다. 제한속도: ${window.currentSpeedLimit}km/h`;
         resultBox.style.color = "red";
