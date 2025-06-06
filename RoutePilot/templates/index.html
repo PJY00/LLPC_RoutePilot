@@ -1,132 +1,104 @@
 <!DOCTYPE html>
 <html lang="ko">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>RoutePilot</title>
-    <link
-      href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css"
-      rel="stylesheet"
-    />
-    <link
-      rel="stylesheet"
-      href="{{ url_for('static', filename='CSS/style.css') }}"
-    />
-    <link
-      rel="stylesheet"
-      href="{{ url_for('static', filename='css/display_style.css') }}"
-    />
-    <script src="https://code.jquery.com/jquery-3.2.1.min.js"></script>
-  </head>
 
-  <body class="container mt-3">
-    {% include "nav.html" %}
-    <div class="wrap">
-      <h2>📍 내 위치의 실시간 날씨</h2>
-      <div id="weather_info" class="mb-3"></div>
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>RoutePilot</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" />
+  <link rel="stylesheet" href="{{ url_for('static', filename='CSS/style.css') }}" />
+  <link rel="stylesheet" href="{{ url_for('static', filename='CSS/display_style.css') }}" />
+  <script src="https://code.jquery.com/jquery-3.2.1.min.js"></script>
+</head>
 
-      <div class="enter-address">
-        <div class="row mb-3">
-          <div class="col-md-6">
-            <input
-              type="text"
-              id="start-address"
-              class="form-control mb-2"
-              placeholder="출발 주소"
-              readonly
-            />
-          </div>
-          <div class="col-md-6">
-            <input
-              type="text"
-              id="fullAddr"
-              class="form-control mb-2"
-              placeholder="도착지 주소 입력"
-            />
-          </div>
+<body class="container mt-3">
+  {% include "nav.html" %}
+  <div class="wrap">
+    <h2>📍 내 위치의 실시간 날씨</h2>
+    <div id="weather_info" class="mb-3"></div>
+
+    <div class="enter-address">
+      <div class="row mb-3">
+        <div class="col-md-6">
+          <input type="text" id="start-address" class="form-control mb-2" placeholder="출발 주소" readonly />
         </div>
-
-        <div class="mb-3">
-          <button class="btn btn-secondary" onclick="getCurrentLocation()">
-            현재 위치를 출발지로
-          </button>
-          <button
-            id="btn_select"
-            class="btn btn-primary"
-            onclick="setupAddressGeocode()"
-          >
-            도착지 적용
-          </button>
-        </div>
-        <p id="result" class="text-danger mt-1" style="font-size: 0.9rem"></p>
-      </div>
-
-      <div class="route-find">
-        <div class="row mb-3">
-          <div class="col-md-6">
-            <label class="form-label">탐색 옵션</label>
-            <select id="selectLevel" class="form-select">
-              <option value="0">교통최적+추천</option>
-              <option value="2">교통최적+최소시간</option>
-            </select>
-          </div>
-          <div class="col-md-6">
-            <label class="form-label">교통정보</label>
-            <select id="trafficInfo" class="form-select">
-              <option value="N">미포함</option>
-              <option value="Y">포함</option>
-            </select>
-          </div>
-        </div>
-        <!-- ▲ 여기를 추가하세요 ▲ -->
-
-        <div class="mb-3">
-          <!-- 기존 drawRoute 호출 -->
-          <button class="btn btn-primary" onclick="drawRoute()">
-            경로 보기
-          </button>
+        <div class="col-md-6">
+          <input type="text" id="fullAddr" class="form-control mb-2" placeholder="도착지 주소 입력" />
         </div>
       </div>
-
-      <div class="speed-floating-dashboard">
-        <span class="floating-value" id="speed">0</span>
-        <span class="floating-unit">km/h</span>
-      </div>
-
-      <div id="speedInputContainer" style="display: none; margin-top: 10px">
-        <label>현재 속도 (km/h): </label>
-        <input type="number" id="userSpeed" />
-        <button onclick="compareSpeed()">속도 비교</button>
-        <p id="speedResult" style="margin-top: 5px"></p>
-      </div>
-
-      <p id="route_info"></p>
-      <div id="map" style="width: 100%; height: 500px"></div>
 
       <div class="mb-3">
-        <div id="speedDisplay" class="alert alert-secondary">
-          지도를 클릭하면 해당 위치의 제한속도 정보가 표시됩니다.
-        </div>
+        <button class="btn btn-secondary" onclick="getCurrentLocation()">
+          현재 위치를 출발지로
+        </button>
+        <button id="btn_select" class="btn btn-primary" onclick="setupAddressGeocode()">
+          도착지 적용
+        </button>
       </div>
-
-      <!-- Tmap SDK -->
-      <script src="https://apis.openapi.sk.com/tmap/jsv2?version=1&appKey={{ tmap_key }}"></script>
-      <script>
-        const APPKEY = "{{tmap_key}}";
-      </script>
-
-      <script
-        type="module"
-        src="{{ url_for('static', filename='/JS/main.js') }}"
-      ></script>
-      <script
-        type="module"
-        src="{{ url_for('static', filename='/JS/address.js') }}"
-      ></script>
+      <p id="result" class="text-danger mt-1" style="font-size: 0.9rem"></p>
     </div>
 
-    <footer>
-      <p>&copy; 2025 RoutePilot Team. All rights reserved.</p>
-    </footer>
-  </body>
+    <div class="route-find">
+      <div class="row mb-3">
+        <div class="col-md-6">
+          <label class="form-label">탐색 옵션</label>
+          <select id="selectLevel" class="form-select">
+            <option value="0">교통최적+추천</option>
+            <option value="2">교통최적+최소시간</option>
+          </select>
+        </div>
+        <div class="col-md-6">
+          <label class="form-label">교통정보</label>
+          <select id="trafficInfo" class="form-select">
+            <option value="N">미포함</option>
+            <option value="Y">포함</option>
+          </select>
+        </div>
+      </div>
+      <!-- ▲ 여기를 추가하세요 ▲ -->
+
+      <div class="mb-3">
+        <!-- 기존 drawRoute 호출 -->
+        <button class="btn btn-primary" onclick="drawRoute()">
+          경로 보기
+        </button>
+      </div>
+    </div>
+
+    <div class="speed-floating-dashboard">
+      <span class="floating-value" id="speed">0</span>
+      <span class="floating-unit">km/h</span>
+    </div>
+
+    <div id="speedInputContainer" style="display: none; margin-top: 10px">
+      <label>현재 속도 (km/h): </label>
+      <input type="number" id="userSpeed" />
+      <button onclick="compareSpeed()">속도 비교</button>
+      <p id="speedResult" style="margin-top: 5px"></p>
+    </div>
+
+    <p id="route_info"></p>
+    <div id="map" style="width: 100%; height: 500px"></div>
+
+    <div class="mb-3">
+      <div id="speedDisplay" class="alert alert-secondary">
+        지도를 클릭하면 해당 위치의 제한속도 정보가 표시됩니다.
+      </div>
+    </div>
+
+    <!-- Tmap SDK -->
+    <script src="https://apis.openapi.sk.com/tmap/jsv2?version=1&appKey={{ tmap_key }}"></script>
+    <script>
+      const APPKEY = "{{tmap_key}}";
+    </script>
+
+    <script type="module" src="{{ url_for('static', filename='/JS/main.js') }}"></script>
+    <script type="module" src="{{ url_for('static', filename='/JS/address.js') }}"></script>
+  </div>
+
+  <footer>
+    <p>&copy; 2025 RoutePilot Team. All rights reserved.</p>
+  </footer>
+</body>
+
 </html>
