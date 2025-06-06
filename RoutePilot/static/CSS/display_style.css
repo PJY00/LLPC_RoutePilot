@@ -1,0 +1,30 @@
+.speed-floating-dashboard {
+  display: flex;
+  align-items: flex-end; 
+  margin-top: 28px;
+  margin-left: 24px;
+  background: #001D3D;
+  border-radius: 2rem;
+  box-shadow: 0 8px 32px rgba(0,0,0,0.18);
+  border: 2px solid #003566;
+  padding: 0.6rem 2.5rem 0.6rem 2.5rem;
+  height: 4.5rem;
+  width: fit-content;
+}
+
+.floating-value {
+  font-size: 3rem;
+  font-weight: 800;
+  color: #fff;
+  line-height: 1;
+}
+
+.floating-unit {
+  font-size: 1.05rem;         /* 아주 작게 */
+  font-weight: 400;
+  color: #e0e9f3;
+  margin-left: 0.6rem;
+  letter-spacing: 1px;
+  align-self: flex-end;       /* 아래쪽 정렬 */
+  margin-bottom: 0.5rem;
+}

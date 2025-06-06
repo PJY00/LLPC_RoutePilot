@@ -5,18 +5,9 @@ html, body {
 body {
   margin: 0;
   font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-  background-color: #f4f6f8;
+  background-color: white;
   color: #333;
 }
-
-/* .navbar {
-  background-color: #002c5f;
-  color: white;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 1rem 2rem;
-} */
 
 .logo {
   font-size: 1.5rem;
